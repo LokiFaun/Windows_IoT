@@ -3,10 +3,10 @@
 
 #include "pch.h"
 
-#define KB_DIV 1024
-#define MESSAGE_WIDTH 30
-#define HELP_WIDTH 20
-#define NUMERIC_WIDTH 10
+static const int KB_DIV = 1024;
+static const int MESSAGE_WIDTH = 30;
+static const int HELP_WIDTH = 20;
+static const int NUMERIC_WIDTH = 10;
 
 void print_message(std::string const & msg, bool addColon = false)
 {
