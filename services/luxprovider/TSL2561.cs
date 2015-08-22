@@ -22,6 +22,38 @@ namespace luxprovider
         private const int REG_THRESH_H = 0x04;
         private const int REG_THRESH_L = 0x02;
         private const int REG_TIMING = 0x01;
+        private const int LUX_SCALE = 15;
+        private const int RATIO_SCALE = 9;
+        private const int CH_SCALE = 10;
+        private const int CH0_SCALE = 0x7517;
+        private const int CH1_SCALE = 0x0fe7;
+        private const byte FAST_TIMING = 0;
+        private const byte MIDDLE_TIMING = 1;
+        private const byte SLOW_TIMING = 2;
+        private const int K1C = 0x0043;
+        private const int B1C = 0x0204;
+        private const int M1C = 0x01ad;
+        private const int K2C = 0x0085;
+        private const int B2C = 0x0228;
+        private const int M2C = 0x02c1;
+        private const int K3C = 0x00c8;
+        private const int B3C = 0x0253;
+        private const int M3C = 0x0363;
+        private const int K4C = 0x010a;
+        private const int B4C = 0x0282;
+        private const int M4C = 0x03df;
+        private const int K5C = 0x014d;
+        private const int B5C = 0x0177;
+        private const int M5C = 0x01dd;
+        private const int K6C = 0x019a;
+        private const int B6C = 0x0101;
+        private const int M6C = 0x0127;
+        private const int K7C = 0x029a;
+        private const int B7C = 0x0037;
+        private const int M7C = 0x002b;
+        private const int K8C = 0x029a;
+        private const int B8C = 0x0000;
+        private const int M8C = 0x0000;
 
         private I2cDevice m_Device;
 
@@ -34,12 +66,12 @@ namespace luxprovider
             m_Device = device;
         }
 
-        public static int ADDRESS { get; } = 0x39;
-        public static int ADDRESS_0 { get; } = 0x29;
-        public static int ADDRESS_1 { get; } = 0x49;
-        public static byte FAST_TIMING { get; } = 0;
-        public static byte MIDDLE_TIMING { get; } = 1;
-        public static byte SLOW_TIMING { get; } = 2;
+        public static int Address { get; } = 0x39;
+        public static int Address_0 { get; } = 0x29;
+        public static int Address_1 { get; } = 0x49;
+        public static byte FastTiming { get; } = 0;
+        public static byte MiddleTiming { get; } = 1;
+        public static byte SlowTiming { get; } = 2;
 
         /// <summary>
         /// Reads data from data_0 and data_1 registers
@@ -68,49 +100,87 @@ namespace luxprovider
         /// Converts channel_0 and channel_1 data to LUX values using gain and ms
         /// </summary>
         /// <param name="gain">Specifies if high or low gain is used</param>
-        /// <param name="ms">Specifies the timing used</param>
+        /// <param name="timing">Specifies the timing used</param>
         /// <param name="ch0">Channel_0 data</param>
         /// <param name="ch1">Channel_1 data</param>
         /// <returns>Lux representation of channel_0 and channel_1 data</returns>
-        public double GetLux(bool gain, uint ms, uint ch0, uint ch1)
+        public ulong GetLux(bool gain, uint timing, uint ch0, uint ch1)
         {
             if (ch0 == 0xFFFF || ch1 == 0xFFFF)
             {
                 return 0xFFFF;
             }
-            double d0 = ch0;
-            double d1 = ch1;
-            double ratio = d1 / d0;
+            ulong scale = 0;
 
             // normalize to timing
-            d0 *= (402.0 / ms);
-            d1 *= (402.0 / ms);
+            switch (timing)
+            {
+                case FAST_TIMING:
+                    scale = CH0_SCALE;
+                    break;
+
+                case MIDDLE_TIMING:
+                    scale = CH1_SCALE;
+                    break;
+
+                default:
+                    scale = (1 << CH_SCALE);
+                    break;
+            }
 
             // normalize to gain
             if (!gain)
             {
-                d0 *= HIGH_GAIN;
-                d1 *= HIGH_GAIN;
+                scale *= HIGH_GAIN;
             }
 
+            ulong d0 = (ch0 * scale) >> CH_SCALE;
+            ulong d1 = (ch1 * scale) >> CH_SCALE;
+            ulong ratio = 0;
+            if (d0 != 0)
+            {
+                ratio = (d1 << (RATIO_SCALE + 1)) / d0;
+            }
+            ratio = (ratio + 1) >> 1;
+
             // calculate lux according to datasheet
-            var lux = 0.0;
-            if (ratio <= 0.5)
+            var lux = 0UL;
+            if (ratio <= K1C)
             {
-                lux = 0.0304 * d0 - 0.062 * d0 * Math.Pow(ratio, 1.4);
+                lux = B1C * d0 - d1 * M1C;
             }
-            else if (ratio <= 0.61)
+            else if (ratio <= K2C)
             {
-                lux = 0.0224 * d0 - 0.031 * d1;
+                lux = B2C * d0 - M2C * d1;
             }
-            else if (ratio <= 0.80)
+            else if (ratio <= K3C)
             {
-                lux = 0.0128 * d0 - 0.0153 * d1;
+                lux = B3C * d0 - M3C * d1;
             }
-            else if (ratio <= 1.30)
+            else if (ratio <= K4C)
             {
-                lux = 0.00146 * d0 - 0.00112 * d1;
+                lux = B4C * d0 - M4C * d1;
             }
+            else if (ratio <= K5C)
+            {
+                lux = B5C * d0 - M5C * d1;
+            }
+            else if (ratio <= K6C)
+            {
+                lux = B6C * d0 - M6C * d1;
+            }
+            else if (ratio <= K7C)
+            {
+                lux = B7C * d0 - M7C * d1;
+            }
+            else if (ratio > K8C)
+            {
+                lux = B8C * d0 - M8C * d1;
+            }
+            lux = lux > 0 ? lux : 0;
+            lux += (1 << (LUX_SCALE - 1));
+            lux = lux >> LUX_SCALE;
+
             return lux;
         }
 

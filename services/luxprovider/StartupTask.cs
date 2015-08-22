@@ -28,7 +28,6 @@ namespace luxprovider
         private double m_CurrentLux = 0;
         private BackgroundTaskDeferral m_Deferral = null;
         private I2cDevice m_Device = null;
-        private int m_MiliSeconds = 0;
         private TSL2561 m_Sensor = null;
         private Timer m_Timer = null;
 
@@ -40,7 +39,7 @@ namespace luxprovider
             try
             {
                 // initialize I2C
-                var i2cSettings = new I2cConnectionSettings(TSL2561.ADDRESS)
+                var i2cSettings = new I2cConnectionSettings(TSL2561.Address)
                 {
                     BusSpeed = I2cBusSpeed.FastMode,
                     SharingMode = I2cSharingMode.Shared,
@@ -51,7 +50,7 @@ namespace luxprovider
 
                 // initialize sensor
                 m_Sensor = new TSL2561(m_Device);
-                m_MiliSeconds = m_Sensor.SetTiming(m_Gain, TSL2561.SLOW_TIMING);
+                m_Sensor.SetTiming(m_Gain, TSL2561.SlowTiming);
                 m_Sensor.PowerUp();
 
                 // initialize MQTT
@@ -76,7 +75,7 @@ namespace luxprovider
         {
             // read the sensor values
             var data = m_Sensor.GetData();
-            var lux = m_Sensor.GetLux(m_Gain, (uint)m_MiliSeconds, data[0], data[1]);
+            var lux = m_Sensor.GetLux(m_Gain, TSL2561.SlowTiming, data[0], data[1]);
 
             if (lux != 0)
             {
