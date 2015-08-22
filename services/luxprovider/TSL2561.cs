@@ -5,13 +5,12 @@ namespace luxprovider
 {
     public sealed class TSL2561
     {
-        // commands
-
         private const int COMMAND = 0x80;
         private const int COMMAND_CLEAR = 0xC0;
-
-        // registers
-
+        private const byte HIGH_GAIN = 0x10;
+        private const byte INTEGRATION_TIME_SLOW = 0x02;
+        private const byte POWER_DOWN = 0x00;
+        private const byte POWER_UP = 0x03;
         private const int REG_CONTROL = 0x00;
         private const int REG_DATA_0 = 0x0C;
         private const int REG_DATA_1 = 0x0E;
@@ -21,24 +20,19 @@ namespace luxprovider
         private const int REG_THRESH_L = 0x02;
         private const int REG_TIMING = 0x01;
 
-        // fields
-
         private I2cDevice m_Device;
-
-        // constructor
 
         public TSL2561(I2cDevice device)
         {
             m_Device = device;
         }
 
-        // addresses
-
         public static int ADDRESS { get; } = 0x39;
         public static int ADDRESS_0 { get; } = 0x29;
         public static int ADDRESS_1 { get; } = 0x49;
-
-        // public methods
+        public static byte FAST_TIMING { get; } = 0;
+        public static byte MIDDLE_TIMING { get; } = 1;
+        public static byte SLOW_TIMING { get; } = 2;
 
         public uint[] GetData()
         {
@@ -70,38 +64,38 @@ namespace luxprovider
 
             if (!gain)
             {
-                d0 *= 16;
-                d1 *= 16;
+                d0 *= HIGH_GAIN;
+                d1 *= HIGH_GAIN;
             }
 
             var lux = 0.0;
-            if (ratio < 0.5)
+            if (ratio <= 0.5)
             {
                 lux = 0.0304 * d0 - 0.062 * d0 * Math.Pow(ratio, 1.4);
             }
-            else if (ratio < 0.61)
+            else if (ratio <= 0.61)
             {
                 lux = 0.0224 * d0 - 0.031 * d1;
             }
-            else if (ratio < 0.80)
+            else if (ratio <= 0.80)
+            {
+                lux = 0.0128 * d0 - 0.0153 * d1;
+            }
+            else if (ratio <= 1.30)
             {
                 lux = 0.00146 * d0 - 0.00112 * d1;
-            }
-            else
-            {
-                lux = 0.0;
             }
             return lux;
         }
 
         public void PowerDown()
         {
-            Write8(REG_CONTROL, 0x00);
+            Write8(REG_CONTROL, POWER_DOWN);
         }
 
         public void PowerUp()
         {
-            Write8(REG_CONTROL, 0x03);
+            Write8(REG_CONTROL, POWER_UP);
         }
 
         public int SetTiming(bool gain, byte time)
@@ -128,22 +122,20 @@ namespace luxprovider
             int timing = Read8(REG_TIMING);
             if (gain)
             {
-                timing |= 0x10;
+                timing |= HIGH_GAIN;
             }
             else
             {
-                timing &= ~0x10;
+                timing &= ~HIGH_GAIN;
             }
 
-            timing &= ~0x03;
-            timing |= (time & 0x03);
+            timing &= ~INTEGRATION_TIME_SLOW;
+            timing |= (time & INTEGRATION_TIME_SLOW);
 
             Write8(REG_TIMING, (byte)timing);
 
             return ms;
         }
-
-        // private methods
 
         private ushort Read16(byte addr)
         {
