@@ -37,6 +37,7 @@ namespace luxprovider
 
             try
             {
+                // initialize I2C
                 var i2cSettings = new I2cConnectionSettings(TSL2561.ADDRESS)
                 {
                     BusSpeed = I2cBusSpeed.FastMode,
@@ -46,13 +47,16 @@ namespace luxprovider
                 var deviceInformation = await DeviceInformation.FindAllAsync(selector);
                 m_Device = await I2cDevice.FromIdAsync(deviceInformation[0].Id, i2cSettings);
 
+                // initialize sensor
                 m_Sensor = new TSL2561(m_Device);
                 m_MiliSeconds = m_Sensor.SetTiming(m_Gain, TSL2561.SLOW_TIMING);
                 m_Sensor.PowerUp();
 
+                // initialize MQTT
                 m_Client = new MqttClient(m_Host);
                 m_Client.Connect(Guid.NewGuid().ToString());
 
+                // start timer
                 m_Timer = new Timer(LuxProvider, null, m_TimerDueTime, m_TimerInterval);
             }
             catch (Exception)
@@ -62,11 +66,17 @@ namespace luxprovider
             }
         }
 
+        /// <summary>
+        /// Timer callback for periodically reading and publishing sensor values
+        /// </summary>
+        /// <param name="stateInfo">unused</param>
         private void LuxProvider(object stateInfo)
         {
+            // read the sensor values
             var data = m_Sensor.GetData();
             var lux = m_Sensor.GetLux(m_Gain, (uint)m_MiliSeconds, data[0], data[1]);
 
+            // publish the sensor values
             m_Client.Publish(m_LuxChannel1Topic, Encoding.UTF8.GetBytes(data[0].ToString()), m_QoS, m_RetainMessage);
             m_Client.Publish(m_LuxChannel2Topic, Encoding.UTF8.GetBytes(data[1].ToString()), m_QoS, m_RetainMessage);
             m_Client.Publish(m_LuxRatioTopic, Encoding.UTF8.GetBytes((data[1] / (double)data[0]).ToString()), m_QoS, m_RetainMessage);

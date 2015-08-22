@@ -3,6 +3,9 @@ using Windows.Devices.I2c;
 
 namespace luxprovider
 {
+    /// <summary>
+    /// Representation of TSL2561 sensor
+    /// </summary>
     public sealed class TSL2561
     {
         private const int COMMAND = 0x80;
@@ -22,6 +25,10 @@ namespace luxprovider
 
         private I2cDevice m_Device;
 
+        /// <summary>
+        /// Initializes the sensor
+        /// </summary>
+        /// <param name="device">The I2C device for communication with the sensor</param>
         public TSL2561(I2cDevice device)
         {
             m_Device = device;
@@ -34,6 +41,10 @@ namespace luxprovider
         public static byte MIDDLE_TIMING { get; } = 1;
         public static byte SLOW_TIMING { get; } = 2;
 
+        /// <summary>
+        /// Reads data from data_0 and data_1 registers
+        /// </summary>
+        /// <returns>Contents of data_0 and data_1 registers</returns>
         public uint[] GetData()
         {
             var data = new uint[]
@@ -44,11 +55,23 @@ namespace luxprovider
             return data;
         }
 
+        /// <summary>
+        /// Reads the sensor ID
+        /// </summary>
+        /// <returns>The sensor ID</returns>
         public byte GetId()
         {
             return Read8(REG_ID);
         }
 
+        /// <summary>
+        /// Converts channel_0 and channel_1 data to LUX values using gain and ms
+        /// </summary>
+        /// <param name="gain">Specifies if high or low gain is used</param>
+        /// <param name="ms">Specifies the timing used</param>
+        /// <param name="ch0">Channel_0 data</param>
+        /// <param name="ch1">Channel_1 data</param>
+        /// <returns>Lux representation of channel_0 and channel_1 data</returns>
         public double GetLux(bool gain, uint ms, uint ch0, uint ch1)
         {
             if (ch0 == 0xFFFF || ch1 == 0xFFFF)
@@ -59,15 +82,18 @@ namespace luxprovider
             double d1 = ch1;
             double ratio = d1 / d0;
 
+            // normalize to timing
             d0 *= (402.0 / ms);
             d1 *= (402.0 / ms);
 
+            // normalize to gain
             if (!gain)
             {
                 d0 *= HIGH_GAIN;
                 d1 *= HIGH_GAIN;
             }
 
+            // calculate lux according to datasheet
             var lux = 0.0;
             if (ratio <= 0.5)
             {
@@ -88,16 +114,28 @@ namespace luxprovider
             return lux;
         }
 
+        /// <summary>
+        /// Power down the sensor
+        /// </summary>
         public void PowerDown()
         {
             Write8(REG_CONTROL, POWER_DOWN);
         }
 
+        /// <summary>
+        /// Power up the sensor
+        /// </summary>
         public void PowerUp()
         {
             Write8(REG_CONTROL, POWER_UP);
         }
 
+        /// <summary>
+        /// Set the timing to use for lux measurement
+        /// </summary>
+        /// <param name="gain">Specifies if high or low gain shall be used</param>
+        /// <param name="time">Specifies the timing: 0 => 14ms, 1 => 101ms, 2 => 402ms</param>
+        /// <returns></returns>
         public int SetTiming(bool gain, byte time)
         {
             var ms = 0;
@@ -116,8 +154,7 @@ namespace luxprovider
                     break;
 
                 default:
-                    ms = 0;
-                    break;
+                    throw new ArgumentOutOfRangeException("time", "Possible values: 0, 1, 2");
             }
             int timing = Read8(REG_TIMING);
             if (gain)
@@ -137,6 +174,11 @@ namespace luxprovider
             return ms;
         }
 
+        /// <summary>
+        /// Reads 2 bytes from the specified address
+        /// </summary>
+        /// <param name="addr">Register to read from</param>
+        /// <returns>2 byte register value</returns>
         private ushort Read16(byte addr)
         {
             var address = new byte[] { (byte)(addr | COMMAND) };
@@ -152,6 +194,11 @@ namespace luxprovider
             return result;
         }
 
+        /// <summary>
+        /// Read 1 byte form the specified address
+        /// </summary>
+        /// <param name="addr">Register to read from</param>
+        /// <returns>1 byte register value</returns>
         private byte Read8(byte addr)
         {
             var address = new byte[] { (byte)(addr | COMMAND) };
@@ -162,6 +209,11 @@ namespace luxprovider
             return data[0];
         }
 
+        /// <summary>
+        /// Writes 1 byte to the specified address
+        /// </summary>
+        /// <param name="addr">Register to write to</param>
+        /// <param name="cmd">Command to write</param>
         private void Write8(byte addr, byte cmd)
         {
             var command = new byte[] { (byte)(addr | COMMAND), cmd };
