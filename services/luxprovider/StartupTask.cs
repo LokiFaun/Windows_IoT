@@ -24,6 +24,7 @@ namespace luxprovider
 
         private readonly string m_ClientId = Guid.NewGuid().ToString();
         private readonly ManualResetEvent m_ShutdownEvent = new ManualResetEvent(false);
+        private readonly byte m_Timing = TSL2561.FastTiming;
         private MqttClient m_Client = null;
         private double m_CurrentLux = 0;
         private BackgroundTaskDeferral m_Deferral = null;
@@ -50,7 +51,7 @@ namespace luxprovider
 
                 // initialize sensor
                 m_Sensor = new TSL2561(m_Device);
-                m_Sensor.SetTiming(m_Gain, TSL2561.SlowTiming);
+                m_Sensor.SetTiming(m_Gain, m_Timing);
                 m_Sensor.PowerUp();
 
                 // initialize MQTT
@@ -75,7 +76,7 @@ namespace luxprovider
         {
             // read the sensor values
             var data = m_Sensor.GetData();
-            var lux = m_Sensor.GetLux(m_Gain, TSL2561.SlowTiming, data[0], data[1]);
+            var lux = m_Sensor.GetLux(m_Gain, m_Timing, data[0], data[1]);
 
             if (lux != 0)
             {
