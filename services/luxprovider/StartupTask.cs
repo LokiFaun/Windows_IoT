@@ -15,15 +15,17 @@ namespace luxprovider
         private const string m_Host = "test.mosquitto.org";
         private const string m_LuxChannel1Topic = "/schuetz/lux/channel/1";
         private const string m_LuxChannel2Topic = "/schuetz/lux/channel/2";
-        private const string m_LuxRatioTopic = "schuetz/lux/ratio";
-        private const string m_LuxTopic = "schuetz/lux";
+        private const string m_LuxRatioTopic = "/schuetz/lux/ratio";
+        private const string m_LuxTopic = "/schuetz/lux";
         private const byte m_QoS = 1;
         private const bool m_RetainMessage = true;
         private const int m_TimerDueTime = 1000;
         private const int m_TimerInterval = 2000;
 
+        private readonly string m_ClientId = Guid.NewGuid().ToString();
         private readonly ManualResetEvent m_ShutdownEvent = new ManualResetEvent(false);
         private MqttClient m_Client = null;
+        private double m_CurrentLux = 0;
         private BackgroundTaskDeferral m_Deferral = null;
         private I2cDevice m_Device = null;
         private int m_MiliSeconds = 0;
@@ -54,7 +56,7 @@ namespace luxprovider
 
                 // initialize MQTT
                 m_Client = new MqttClient(m_Host);
-                m_Client.Connect(Guid.NewGuid().ToString());
+                m_Client.Connect(m_ClientId);
 
                 // start timer
                 m_Timer = new Timer(LuxProvider, null, m_TimerDueTime, m_TimerInterval);
@@ -76,11 +78,20 @@ namespace luxprovider
             var data = m_Sensor.GetData();
             var lux = m_Sensor.GetLux(m_Gain, (uint)m_MiliSeconds, data[0], data[1]);
 
+            if (lux != 0)
+            {
+                m_CurrentLux = lux;
+            }
+
             // publish the sensor values
+            if (!m_Client.IsConnected)
+            {
+                m_Client.Connect(m_ClientId);
+            }
             m_Client.Publish(m_LuxChannel1Topic, Encoding.UTF8.GetBytes(data[0].ToString()), m_QoS, m_RetainMessage);
             m_Client.Publish(m_LuxChannel2Topic, Encoding.UTF8.GetBytes(data[1].ToString()), m_QoS, m_RetainMessage);
             m_Client.Publish(m_LuxRatioTopic, Encoding.UTF8.GetBytes((data[1] / (double)data[0]).ToString()), m_QoS, m_RetainMessage);
-            m_Client.Publish(m_LuxTopic, Encoding.UTF8.GetBytes(lux.ToString()), m_QoS, m_RetainMessage);
+            m_Client.Publish(m_LuxTopic, Encoding.UTF8.GetBytes(m_CurrentLux.ToString()), m_QoS, m_RetainMessage);
         }
 
         private void TaskInstanceCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
