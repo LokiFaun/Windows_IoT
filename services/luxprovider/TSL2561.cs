@@ -91,10 +91,7 @@ namespace luxprovider
         /// Reads the sensor ID
         /// </summary>
         /// <returns>The sensor ID</returns>
-        public byte GetId()
-        {
-            return Read8(REG_ID);
-        }
+        public byte GetId() => Read8(REG_ID);
 
         /// <summary>
         /// Converts channel_0 and channel_1 data to LUX values using gain and ms
@@ -103,7 +100,7 @@ namespace luxprovider
         /// <param name="timing">Specifies the timing used</param>
         /// <param name="ch0">Channel_0 data</param>
         /// <param name="ch1">Channel_1 data</param>
-        /// <returns>Lux representation of channel_0 and channel_1 data</returns>
+        /// <returns>LUX representation of channel_0 and channel_1 data</returns>
         public ulong GetLux(bool gain, uint timing, uint ch0, uint ch1)
         {
             if (ch0 == 0xFFFF || ch1 == 0xFFFF)
@@ -143,7 +140,7 @@ namespace luxprovider
             }
             ratio = (ratio + 1) >> 1;
 
-            // calculate lux according to datasheet
+            // calculate LUX according to data-sheet
             var lux = 0UL;
             if (ratio <= K1C)
             {
@@ -201,7 +198,7 @@ namespace luxprovider
         }
 
         /// <summary>
-        /// Set the timing to use for lux measurement
+        /// Set the timing to use for LUX measurement
         /// </summary>
         /// <param name="gain">Specifies if high or low gain shall be used</param>
         /// <param name="time">Specifies the timing: 0 => 14ms, 1 => 101ms, 2 => 402ms</param>
@@ -224,7 +221,7 @@ namespace luxprovider
                     break;
 
                 default:
-                    throw new ArgumentOutOfRangeException("time", "Possible values: 0, 1, 2");
+                    throw new ArgumentOutOfRangeException(nameof(time), "Possible values: 0, 1, 2");
             }
             int timing = Read8(REG_TIMING);
             if (gain)
