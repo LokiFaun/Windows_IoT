@@ -8,52 +8,91 @@ namespace luxprovider
     /// </summary>
     public sealed class TSL2561
     {
-        private const int COMMAND = 0x80;
-        private const int COMMAND_CLEAR = 0xC0;
-        private const byte HIGH_GAIN = 0x10;
-        private const byte INTEGRATION_TIME_SLOW = 0x02;
-        private const byte POWER_DOWN = 0x00;
-        private const byte POWER_UP = 0x03;
-        private const int REG_CONTROL = 0x00;
-        private const int REG_DATA_0 = 0x0C;
-        private const int REG_DATA_1 = 0x0E;
-        private const int REG_ID = 0x0A;
-        private const int REG_INTCTL = 0x06;
-        private const int REG_THRESH_H = 0x04;
-        private const int REG_THRESH_L = 0x02;
-        private const int REG_TIMING = 0x01;
-        private const int LUX_SCALE = 15;
-        private const int RATIO_SCALE = 9;
-        private const int CH_SCALE = 10;
-        private const int CH0_SCALE = 0x7517;
-        private const int CH1_SCALE = 0x0fe7;
-        private const byte FAST_TIMING = 0;
-        private const byte MIDDLE_TIMING = 1;
-        private const byte SLOW_TIMING = 2;
-        private const int K1C = 0x0043;
-        private const int B1C = 0x0204;
-        private const int M1C = 0x01ad;
-        private const int K2C = 0x0085;
-        private const int B2C = 0x0228;
-        private const int M2C = 0x02c1;
-        private const int K3C = 0x00c8;
-        private const int B3C = 0x0253;
-        private const int M3C = 0x0363;
-        private const int K4C = 0x010a;
-        private const int B4C = 0x0282;
-        private const int M4C = 0x03df;
-        private const int K5C = 0x014d;
-        private const int B5C = 0x0177;
-        private const int M5C = 0x01dd;
-        private const int K6C = 0x019a;
-        private const int B6C = 0x0101;
-        private const int M6C = 0x0127;
-        private const int K7C = 0x029a;
-        private const int B7C = 0x0037;
-        private const int M7C = 0x002b;
-        private const int K8C = 0x029a;
-        private const int B8C = 0x0000;
-        private const int M8C = 0x0000;
+        private const int TSL2561_VISIBLE = 2;                   // channel 0 - channel 1
+        private const int TSL2561_INFRARED = 1;                  // channel 1
+        private const int TSL2561_FULLSPECTRUM = 0;              // channel 0
+
+        // I2C address options
+        private const int TSL2561_ADDR_LOW = (0x29);
+        private const int TSL2561_ADDR_FLOAT = (0x39);    // Default address = (pin left; floating)
+        private const int TSL2561_ADDR_HIGH = (0x49);
+
+        // Lux calculations differ slightly for CS package
+
+        private const int TSL2561_COMMAND_BIT = (0x80);    // Must be 1
+        private const int TSL2561_CLEAR_BIT = (0x40);    // Clears any pending interrupt = (write 1; to clear)
+        private const int TSL2561_WORD_BIT = (0x20);    // 1 = read/write word = (rather than; byte)
+        private const int TSL2561_BLOCK_BIT = (0x10);    // 1 = using block read/write
+
+        private const int TSL2561_CONTROL_POWERON = (0x03);
+        private const int TSL2561_CONTROL_POWEROFF = (0x00);
+
+        private const int TSL2561_LUX_LUXSCALE = (14);      // Scale by 2^14
+        private const int TSL2561_LUX_RATIOSCALE = (9);       // Scale ratio by 2^9
+        private const int TSL2561_LUX_CHSCALE = (10);      // Scale channel values by 2^10
+        private const int TSL2561_LUX_CHSCALE_TINT0 = (0x7517);  // 322/11 * 2^TSL2561_LUX_CHSCALE
+        private const int TSL2561_LUX_CHSCALE_TINT1 = (0x0FE7);  // 322/81 * 2^TSL2561_LUX_CHSCALE
+
+        // CS package values
+        private const int TSL2561_LUX_K1C = (0x0043);  // 0.130 * 2^RATIO_SCALE
+        private const int TSL2561_LUX_B1C = (0x0204);  // 0.0315 * 2^LUX_SCALE
+        private const int TSL2561_LUX_M1C = (0x01ad);  // 0.0262 * 2^LUX_SCALE
+        private const int TSL2561_LUX_K2C = (0x0085);  // 0.260 * 2^RATIO_SCALE
+        private const int TSL2561_LUX_B2C = (0x0228);  // 0.0337 * 2^LUX_SCALE
+        private const int TSL2561_LUX_M2C = (0x02c1);  // 0.0430 * 2^LUX_SCALE
+        private const int TSL2561_LUX_K3C = (0x00c8);  // 0.390 * 2^RATIO_SCALE
+        private const int TSL2561_LUX_B3C = (0x0253);  // 0.0363 * 2^LUX_SCALE
+        private const int TSL2561_LUX_M3C = (0x0363);  // 0.0529 * 2^LUX_SCALE
+        private const int TSL2561_LUX_K4C = (0x010a);  // 0.520 * 2^RATIO_SCALE
+        private const int TSL2561_LUX_B4C = (0x0282);  // 0.0392 * 2^LUX_SCALE
+        private const int TSL2561_LUX_M4C = (0x03df);  // 0.0605 * 2^LUX_SCALE
+        private const int TSL2561_LUX_K5C = (0x014d);  // 0.65 * 2^RATIO_SCALE
+        private const int TSL2561_LUX_B5C = (0x0177);  // 0.0229 * 2^LUX_SCALE
+        private const int TSL2561_LUX_M5C = (0x01dd);  // 0.0291 * 2^LUX_SCALE
+        private const int TSL2561_LUX_K6C = (0x019a);  // 0.80 * 2^RATIO_SCALE
+        private const int TSL2561_LUX_B6C = (0x0101);  // 0.0157 * 2^LUX_SCALE
+        private const int TSL2561_LUX_M6C = (0x0127);  // 0.0180 * 2^LUX_SCALE
+        private const int TSL2561_LUX_K7C = (0x029a);  // 1.3 * 2^RATIO_SCALE
+        private const int TSL2561_LUX_B7C = (0x0037);  // 0.00338 * 2^LUX_SCALE
+        private const int TSL2561_LUX_M7C = (0x002b);  // 0.00260 * 2^LUX_SCALE
+        private const int TSL2561_LUX_K8C = (0x029a);  // 1.3 * 2^RATIO_SCALE
+        private const int TSL2561_LUX_B8C = (0x0000);  // 0.000 * 2^LUX_SCALE
+        private const int TSL2561_LUX_M8C = (0x0000);  // 0.000 * 2^LUX_SCALE
+
+        // Auto-gain thresholds
+        private const int TSL2561_AGC_THI_13MS = (4850);    // Max value at Ti 13ms = 5047
+        private const int TSL2561_AGC_TLO_13MS = (100);
+        private const int TSL2561_AGC_THI_101MS = (36000);   // Max value at Ti 101ms = 37177
+        private const int TSL2561_AGC_TLO_101MS = (200);
+        private const int TSL2561_AGC_THI_402MS = (63000);   // Max value at Ti 402ms = 65535
+        private const int TSL2561_AGC_TLO_402MS = (500);
+
+        // Clipping thresholds
+        private const int TSL2561_CLIPPING_13MS = (4900);
+        private const int TSL2561_CLIPPING_101MS = (37000);
+        private const int TSL2561_CLIPPING_402MS = (65000);
+
+        private const int TSL2561_REGISTER_CONTROL = 0x00;
+        private const int TSL2561_REGISTER_TIMING = 0x01;
+        private const int TSL2561_REGISTER_THRESHHOLDL_LOW = 0x02;
+        private const int TSL2561_REGISTER_THRESHHOLDL_HIGH = 0x03;
+        private const int TSL2561_REGISTER_THRESHHOLDH_LOW = 0x04;
+        private const int TSL2561_REGISTER_THRESHHOLDH_HIGH = 0x05;
+        private const int TSL2561_REGISTER_INTERRUPT = 0x06;
+        private const int TSL2561_REGISTER_CRC = 0x08;
+        private const int TSL2561_REGISTER_ID = 0x0A;
+        private const int TSL2561_REGISTER_CHAN0_LOW = 0x0C;
+        private const int TSL2561_REGISTER_CHAN0_HIGH = 0x0D;
+        private const int TSL2561_REGISTER_CHAN1_LOW = 0x0E;
+        private const int TSL2561_REGISTER_CHAN1_HIGH = 0x0F;
+
+        private const int TSL2561_INTEGRATIONTIME_13MS = 0x00;    // 13.7ms
+        private const int TSL2561_INTEGRATIONTIME_101MS = 0x01;    // 101ms
+        private const int TSL2561_INTEGRATIONTIME_402MS = 0x02;    // 402ms
+
+        private const int TSL2561_GAIN_1X = 0x00;    // No gain
+        private const int TSL2561_GAIN_16X = 0x10;    // 16x gain
+
 
         private I2cDevice m_Device;
 
@@ -66,12 +105,14 @@ namespace luxprovider
             m_Device = device;
         }
 
-        public static int Address { get; } = 0x39;
-        public static int Address_0 { get; } = 0x29;
-        public static int Address_1 { get; } = 0x49;
-        public static byte FastTiming { get; } = 0;
-        public static byte MiddleTiming { get; } = 1;
-        public static byte SlowTiming { get; } = 2;
+        public static int Address { get; } = TSL2561_ADDR_FLOAT;
+        public static int Address_0 { get; } = TSL2561_ADDR_LOW;
+        public static int Address_1 { get; } = TSL2561_ADDR_HIGH;
+        public static byte FastTiming { get; } = TSL2561_INTEGRATIONTIME_13MS;
+        public static byte MiddleTiming { get; } = TSL2561_INTEGRATIONTIME_101MS;
+        public static byte SlowTiming { get; } = TSL2561_INTEGRATIONTIME_402MS;
+        public static byte LowGain { get; } = TSL2561_GAIN_1X;
+        public static byte HighGain { get; } = TSL2561_GAIN_16X;
 
         /// <summary>
         /// Reads data from data_0 and data_1 registers
@@ -81,8 +122,8 @@ namespace luxprovider
         {
             var data = new uint[]
             {
-                Read16(REG_DATA_0),
-                Read16(REG_DATA_1)
+                Read16(TSL2561_REGISTER_CHAN0_LOW),
+                Read16(TSL2561_REGISTER_CHAN1_LOW)
             };
             return data;
         }
@@ -91,7 +132,7 @@ namespace luxprovider
         /// Reads the sensor ID
         /// </summary>
         /// <returns>The sensor ID</returns>
-        public byte GetId() => Read8(REG_ID);
+        public byte GetId() => Read8(TSL2561_REGISTER_ID);
 
         /// <summary>
         /// Converts channel_0 and channel_1 data to LUX values using gain and ms
@@ -101,82 +142,83 @@ namespace luxprovider
         /// <param name="ch0">Channel_0 data</param>
         /// <param name="ch1">Channel_1 data</param>
         /// <returns>LUX representation of channel_0 and channel_1 data</returns>
-        public ulong GetLux(bool gain, uint timing, uint ch0, uint ch1)
+        public ulong GetLux(byte gain, uint timing, uint ch0, uint ch1)
         {
-            if (ch0 == 0xFFFF || ch1 == 0xFFFF)
+            /* Return 0 lux if the sensor is saturated */
+            if ((ch0 > 0xFFFF) || (ch1 > 0xFFFF))
             {
-                return 0xFFFF;
+                return 0;
             }
-            ulong scale = 0;
 
-            // normalize to timing
+            /* Get the correct scale depending on the integration time */
+            ulong scale = 0;
             switch (timing)
             {
-                case FAST_TIMING:
-                    scale = CH0_SCALE;
+                case TSL2561_INTEGRATIONTIME_13MS:
+                    scale = TSL2561_LUX_CHSCALE_TINT0;
                     break;
 
-                case MIDDLE_TIMING:
-                    scale = CH1_SCALE;
+                case TSL2561_INTEGRATIONTIME_101MS:
+                    scale = TSL2561_LUX_CHSCALE_TINT1;
                     break;
 
                 default:
-                    scale = (1 << CH_SCALE);
+                    scale = (1 << TSL2561_LUX_CHSCALE);
                     break;
             }
 
             // normalize to gain
-            if (!gain)
+            if (gain == TSL2561_GAIN_1X)
             {
-                scale *= HIGH_GAIN;
+                scale = scale << 4;
             }
 
-            ulong d0 = (ch0 * scale) >> CH_SCALE;
-            ulong d1 = (ch1 * scale) >> CH_SCALE;
+            ulong d0 = (ch0 * scale) >> TSL2561_LUX_CHSCALE;
+            ulong d1 = (ch1 * scale) >> TSL2561_LUX_CHSCALE;
             ulong ratio = 0;
             if (d0 != 0)
             {
-                ratio = (d1 << (RATIO_SCALE + 1)) / d0;
+                ratio = (d1 << (TSL2561_LUX_RATIOSCALE + 1)) / d0;
             }
             ratio = (ratio + 1) >> 1;
 
             // calculate LUX according to data-sheet
             var lux = 0UL;
-            if (ratio <= K1C)
+            if (ratio <= TSL2561_LUX_K1C)
             {
-                lux = B1C * d0 - d1 * M1C;
+                lux = TSL2561_LUX_B1C * d0 - d1 * TSL2561_LUX_M1C;
             }
-            else if (ratio <= K2C)
+            else if (ratio <= TSL2561_LUX_K2C)
             {
-                lux = B2C * d0 - M2C * d1;
+                lux = TSL2561_LUX_B2C * d0 - TSL2561_LUX_M2C * d1;
             }
-            else if (ratio <= K3C)
+            else if (ratio <= TSL2561_LUX_K3C)
             {
-                lux = B3C * d0 - M3C * d1;
+                lux = TSL2561_LUX_B3C * d0 - TSL2561_LUX_M3C * d1;
             }
-            else if (ratio <= K4C)
+            else if (ratio <= TSL2561_LUX_K4C)
             {
-                lux = B4C * d0 - M4C * d1;
+                lux = TSL2561_LUX_B4C * d0 - TSL2561_LUX_M4C * d1;
             }
-            else if (ratio <= K5C)
+            else if (ratio <= TSL2561_LUX_K5C)
             {
-                lux = B5C * d0 - M5C * d1;
+                lux = TSL2561_LUX_B5C * d0 - TSL2561_LUX_M5C * d1;
             }
-            else if (ratio <= K6C)
+            else if (ratio <= TSL2561_LUX_K6C)
             {
-                lux = B6C * d0 - M6C * d1;
+                lux = TSL2561_LUX_B6C * d0 - TSL2561_LUX_M6C * d1;
             }
-            else if (ratio <= K7C)
+            else if (ratio <= TSL2561_LUX_K7C)
             {
-                lux = B7C * d0 - M7C * d1;
+                lux = TSL2561_LUX_B7C * d0 - TSL2561_LUX_M7C * d1;
             }
-            else if (ratio > K8C)
+            else if (ratio > TSL2561_LUX_K8C)
             {
-                lux = B8C * d0 - M8C * d1;
+                lux = TSL2561_LUX_B8C * d0 - TSL2561_LUX_M8C * d1;
             }
-            lux = lux > 0 ? lux : 0;
-            lux += (1 << (LUX_SCALE - 1));
-            lux = lux >> LUX_SCALE;
+            lux = lux < 0 ? 0 : lux;
+            lux += (1 << (TSL2561_LUX_LUXSCALE - 1));
+            lux = lux >> TSL2561_LUX_LUXSCALE;
 
             return lux;
         }
@@ -186,7 +228,7 @@ namespace luxprovider
         /// </summary>
         public void PowerDown()
         {
-            Write8(REG_CONTROL, POWER_DOWN);
+            Write8(TSL2561_REGISTER_CONTROL, TSL2561_CONTROL_POWEROFF);
         }
 
         /// <summary>
@@ -194,7 +236,7 @@ namespace luxprovider
         /// </summary>
         public void PowerUp()
         {
-            Write8(REG_CONTROL, POWER_UP);
+            Write8(TSL2561_REGISTER_CONTROL, TSL2561_CONTROL_POWERON);
         }
 
         /// <summary>
@@ -203,42 +245,9 @@ namespace luxprovider
         /// <param name="gain">Specifies if high or low gain shall be used</param>
         /// <param name="time">Specifies the timing: 0 => 14ms, 1 => 101ms, 2 => 402ms</param>
         /// <returns></returns>
-        public int SetTiming(bool gain, byte time)
+        public void SetTiming(byte gain, byte time)
         {
-            var ms = 0;
-            switch (time)
-            {
-                case 0:
-                    ms = 14;
-                    break;
-
-                case 1:
-                    ms = 101;
-                    break;
-
-                case 2:
-                    ms = 402;
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(time), "Possible values: 0, 1, 2");
-            }
-            int timing = Read8(REG_TIMING);
-            if (gain)
-            {
-                timing |= HIGH_GAIN;
-            }
-            else
-            {
-                timing &= ~HIGH_GAIN;
-            }
-
-            timing &= ~INTEGRATION_TIME_SLOW;
-            timing |= (time & INTEGRATION_TIME_SLOW);
-
-            Write8(REG_TIMING, (byte)timing);
-
-            return ms;
+            Write8(TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING, (byte)(time | gain));
         }
 
         /// <summary>
@@ -248,7 +257,7 @@ namespace luxprovider
         /// <returns>2 byte register value</returns>
         private ushort Read16(byte addr)
         {
-            var address = new byte[] { (byte)(addr | COMMAND) };
+            var address = new byte[] { (byte)(addr | TSL2561_COMMAND_BIT) };
             var data = new byte[2];
 
             m_Device.WriteRead(address, data);
@@ -268,7 +277,7 @@ namespace luxprovider
         /// <returns>1 byte register value</returns>
         private byte Read8(byte addr)
         {
-            var address = new byte[] { (byte)(addr | COMMAND) };
+            var address = new byte[] { (byte)(addr | TSL2561_COMMAND_BIT) };
             var data = new byte[1];
 
             m_Device.WriteRead(address, data);
@@ -283,7 +292,7 @@ namespace luxprovider
         /// <param name="cmd">Command to write</param>
         private void Write8(byte addr, byte cmd)
         {
-            var command = new byte[] { (byte)(addr | COMMAND), cmd };
+            var command = new byte[] { (byte)(addr | TSL2561_COMMAND_BIT), cmd };
             m_Device.Write(command);
         }
     }

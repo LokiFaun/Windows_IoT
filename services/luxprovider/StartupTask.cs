@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using uPLibrary.Networking.M2Mqtt;
+using uPLibrary.Networking.M2Mqtt.Exceptions;
 using Windows.ApplicationModel.Background;
 using Windows.Devices.Enumeration;
 using Windows.Devices.I2c;
@@ -11,8 +13,7 @@ namespace luxprovider
     public sealed class StartupTask : IBackgroundTask, IDisposable
     {
         private const string m_DeviceSelector = "I2C1";
-        private const bool m_Gain = false;
-        private const string m_Host = "test.mosquitto.org";
+        private const string m_Host = "127.0.0.1";
         private const string m_LuxChannel1Topic = "/schuetz/lux/channel/1";
         private const string m_LuxChannel2Topic = "/schuetz/lux/channel/2";
         private const string m_LuxRatioTopic = "/schuetz/lux/ratio";
@@ -23,6 +24,7 @@ namespace luxprovider
         private const int m_TimerInterval = 2000;
 
         private readonly string m_ClientId = Guid.NewGuid().ToString();
+        private readonly byte m_Gain = TSL2561.HighGain;
         private readonly ManualResetEvent m_ShutdownEvent = new ManualResetEvent(false);
         private readonly byte m_Timing = TSL2561.FastTiming;
         private MqttClient m_Client = null;
@@ -37,35 +39,36 @@ namespace luxprovider
             m_Deferral = taskInstance.GetDeferral();
             taskInstance.Canceled += TaskInstanceCanceled;
 
+            // initialize I2C
+            var i2cSettings = new I2cConnectionSettings(TSL2561.Address)
+            {
+                BusSpeed = I2cBusSpeed.FastMode,
+                SharingMode = I2cSharingMode.Shared,
+            };
+            var selector = I2cDevice.GetDeviceSelector(m_DeviceSelector);
+            var deviceInformation = await DeviceInformation.FindAllAsync(selector);
+            m_Device = await I2cDevice.FromIdAsync(deviceInformation[0].Id, i2cSettings);
+
+            // initialize sensor
+            m_Sensor = new TSL2561(m_Device);
+            m_Sensor.SetTiming(m_Gain, m_Timing);
+            m_Sensor.PowerUp();
+
+            // initialize MQTT
             try
             {
-                // initialize I2C
-                var i2cSettings = new I2cConnectionSettings(TSL2561.Address)
-                {
-                    BusSpeed = I2cBusSpeed.FastMode,
-                    SharingMode = I2cSharingMode.Shared,
-                };
-                var selector = I2cDevice.GetDeviceSelector(m_DeviceSelector);
-                var deviceInformation = await DeviceInformation.FindAllAsync(selector);
-                m_Device = await I2cDevice.FromIdAsync(deviceInformation[0].Id, i2cSettings);
-
-                // initialize sensor
-                m_Sensor = new TSL2561(m_Device);
-                m_Sensor.SetTiming(m_Gain, m_Timing);
-                m_Sensor.PowerUp();
-
-                // initialize MQTT
                 m_Client = new MqttClient(m_Host);
                 m_Client.Connect(m_ClientId);
-
-                // start timer
-                m_Timer = new Timer(LuxProvider, null, m_TimerDueTime, m_TimerInterval);
             }
-            catch (Exception)
+            catch (MqttConnectionException ex)
             {
-                taskInstance.Canceled -= TaskInstanceCanceled;
-                m_Deferral.Complete();
+                // ignore connection exception and retry to connect later
+                Debug.WriteLine("Cannot connect to MQTT broker: " + ex.Message);
+                m_Client = null;
             }
+
+            // start timer
+            m_Timer = new Timer(LuxProvider, null, m_TimerDueTime, m_TimerInterval);
         }
 
         /// <summary>
@@ -84,14 +87,27 @@ namespace luxprovider
             }
 
             // publish the sensor values
-            if (!m_Client.IsConnected)
+            try
             {
-                m_Client.Connect(m_ClientId);
+                if (m_Client == null)
+                {
+                    m_Client = new MqttClient(m_Host);
+                }
+                if (!m_Client.IsConnected)
+                {
+                    m_Client.Connect(m_ClientId);
+                }
+                Debug.WriteLine(string.Format("Publishing: lux={0}, channel_0={1}, channel_1={2}, ratio={3}", lux, data[0], data[1], (data[1] / (double)data[0])));
+                m_Client.Publish(m_LuxChannel1Topic, Encoding.UTF8.GetBytes(data[0].ToString()), m_QoS, m_RetainMessage);
+                m_Client.Publish(m_LuxChannel2Topic, Encoding.UTF8.GetBytes(data[1].ToString()), m_QoS, m_RetainMessage);
+                m_Client.Publish(m_LuxRatioTopic, Encoding.UTF8.GetBytes((data[1] / (double)data[0]).ToString()), m_QoS, m_RetainMessage);
+                m_Client.Publish(m_LuxTopic, Encoding.UTF8.GetBytes(m_CurrentLux.ToString()), m_QoS, m_RetainMessage);
             }
-            m_Client.Publish(m_LuxChannel1Topic, Encoding.UTF8.GetBytes(data[0].ToString()), m_QoS, m_RetainMessage);
-            m_Client.Publish(m_LuxChannel2Topic, Encoding.UTF8.GetBytes(data[1].ToString()), m_QoS, m_RetainMessage);
-            m_Client.Publish(m_LuxRatioTopic, Encoding.UTF8.GetBytes((data[1] / (double)data[0]).ToString()), m_QoS, m_RetainMessage);
-            m_Client.Publish(m_LuxTopic, Encoding.UTF8.GetBytes(m_CurrentLux.ToString()), m_QoS, m_RetainMessage);
+            catch (MqttConnectionException ex)
+            {
+                // ignore exception
+                Debug.WriteLine("Cannot connect to MQTT broker: " + ex.Message);
+            }
         }
 
         private void TaskInstanceCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
