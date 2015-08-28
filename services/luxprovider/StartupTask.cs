@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using uPLibrary.Networking.M2Mqtt;
@@ -27,8 +29,8 @@ namespace luxprovider
         private readonly byte m_Gain = TSL2561.HighGain;
         private readonly ManualResetEvent m_ShutdownEvent = new ManualResetEvent(false);
         private readonly byte m_Timing = TSL2561.FastTiming;
+        private readonly Queue<ulong> m_LuxValues = new Queue<ulong>();
         private MqttClient m_Client = null;
-        private double m_CurrentLux = 0;
         private BackgroundTaskDeferral m_Deferral = null;
         private I2cDevice m_Device = null;
         private TSL2561 m_Sensor = null;
@@ -79,12 +81,14 @@ namespace luxprovider
         {
             // read the sensor values
             var data = m_Sensor.GetData();
-            var lux = m_Sensor.GetLux(m_Gain, m_Timing, data[0], data[1]);
+            var currentReading = m_Sensor.GetLux(m_Gain, m_Timing, data[0], data[1]);
 
-            if (lux != 0)
+            m_LuxValues.Enqueue(currentReading);
+            while (m_LuxValues.Count > 10)
             {
-                m_CurrentLux = lux;
+                m_LuxValues.Dequeue();
             }
+            var lux = (ulong)m_LuxValues.Average(x => (decimal)x);
 
             // publish the sensor values
             try
@@ -101,7 +105,7 @@ namespace luxprovider
                 m_Client.Publish(m_LuxChannel1Topic, Encoding.UTF8.GetBytes(data[0].ToString()), m_QoS, m_RetainMessage);
                 m_Client.Publish(m_LuxChannel2Topic, Encoding.UTF8.GetBytes(data[1].ToString()), m_QoS, m_RetainMessage);
                 m_Client.Publish(m_LuxRatioTopic, Encoding.UTF8.GetBytes((data[1] / (double)data[0]).ToString()), m_QoS, m_RetainMessage);
-                m_Client.Publish(m_LuxTopic, Encoding.UTF8.GetBytes(m_CurrentLux.ToString()), m_QoS, m_RetainMessage);
+                m_Client.Publish(m_LuxTopic, Encoding.UTF8.GetBytes(lux.ToString()), m_QoS, m_RetainMessage);
             }
             catch (MqttConnectionException ex)
             {

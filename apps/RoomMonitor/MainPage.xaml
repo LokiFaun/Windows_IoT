@@ -31,6 +31,7 @@
                     Minimum="-125"
                     Maximum="125"
                     Value="{Binding Path=CurrentTemperature}"
+                    IsEnabled="False"
                     CanDrag="False" />
             <TextBlock Grid.Row="2"
                        Margin="10"
@@ -56,6 +57,7 @@
                     Minimum="0"
                     Maximum="40000"
                     Value="{Binding Path=CurrentLuminosity}"
+                    IsEnabled="False"
                     CanDrag="False" />
             <TextBlock Grid.Row="2"
                        Margin="10"

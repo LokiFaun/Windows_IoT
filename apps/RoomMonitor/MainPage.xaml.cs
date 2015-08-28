@@ -18,7 +18,7 @@ namespace RoomMonitor
         private const string LUX_TOPIC = "/schuetz/lux";
         private const string TEMP_TOPIC = "/schuetz/temperature";
 
-        private readonly MqttClient m_Client = new MqttClient("test.mosquitto.org", 1883, false, MqttSslProtocols.None);
+        private readonly MqttClient m_Client = new MqttClient("127.0.0.1", 1883, false, MqttSslProtocols.None);
         private readonly string m_ClientId = Guid.NewGuid().ToString();
 
         private int m_CurrentLuminosity;
