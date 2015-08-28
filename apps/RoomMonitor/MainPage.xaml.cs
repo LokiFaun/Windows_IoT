@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Text;
+using System.Windows.Input;
 using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
 using Windows.UI.Core;
@@ -23,11 +25,14 @@ namespace RoomMonitor
 
         private int m_CurrentLuminosity;
         private int m_CurrentTemperature;
+        private ICommand m_LightSwitchCommand;
 
         public MainPage()
         {
             this.InitializeComponent();
             DataContext = this;
+
+            LightSwitchCommand = new Command<object>(LightSwitchButtonPresset);
 
             m_Client.Connect(m_ClientId);
             m_Client.ConnectionClosed += ClientConnectionClosed;
@@ -57,8 +62,28 @@ namespace RoomMonitor
             }
         }
 
+        public ICommand LightSwitchCommand
+        {
+            get { return m_LightSwitchCommand; }
+            set
+            {
+                m_LightSwitchCommand = value;
+                NotifyOnPropertyChanged(nameof(LightSwitchCommand));
+            }
+        }
+
+        private void LightSwitchButtonPresset(object parameter)
+        {
+            Debug.WriteLine("Light-Switch button pressed");
+        }
+
         private void ClientConnectionClosed(object sender, EventArgs e)
         {
+            // TODO: reconnect to broker
+            while (!m_Client.IsConnected)
+            {
+                m_Client.Connect(m_ClientId);
+            }
         }
 
         private void ClientMessageReceived(object sender, MqttMsgPublishEventArgs e)
