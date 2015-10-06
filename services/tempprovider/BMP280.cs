@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Windows.Devices.I2c;
 
 namespace tempprovider
 {
-    public sealed class BMP280
+    internal sealed class BMP280
     {
         private const int REGISTER_DIG_T1 = 0x88;
         private const int REGISTER_DIG_T2 = 0x8A;
@@ -25,6 +26,7 @@ namespace tempprovider
 
         private const int REGISTER_CAL26 = 0xE1;
 
+        private const int REGISTER_CONTROL_HUMIDITY = 0xF2;
         private const int REGISTER_CONTROL = 0xF4;
         private const int REGISTER_CONFIG = 0xF5;
         private const int REGISTER_PRESSUREDATA = 0xF7;
@@ -45,16 +47,10 @@ namespace tempprovider
             public short P7;
             public short P8;
             public short P9;
-
-            public ushort H1;
-            public short H2;
-            public ushort H3;
-            public short H4;
-            public short H5;
-            public short H6;
         }
 
-        private int m_Normalized = 0;
+        private bool m_IsInitialized = false;
+        private int m_Normalized = int.MinValue;
         private I2cDevice m_Device;
         private CalibrationData m_Calibration = new CalibrationData();
 
@@ -73,23 +69,31 @@ namespace tempprovider
         /// Powers up the sensor
         /// </summary>
         /// <returns>false in case of error, otherwise false</returns>
-        public bool PowerUp()
+        public async Task PowerUp()
         {
             if (Read8(REGISTER_CHIPID) != 0x58)
             {
-                return false;
+                return;
             }
-            ReadCoefficients();
+            await ReadCoefficients();
             Write8(REGISTER_CONTROL, 0x3F);
-            return true;
+            await Task.Delay(1);
+            Write8(REGISTER_CONTROL_HUMIDITY, 0x03);
+            await Task.Delay(1);
+
+            m_IsInitialized = true;
         }
 
         /// <summary>
         /// Read the temperature from the sensor
         /// </summary>
         /// <returns>The temperature in °C</returns>
-        public double ReadTemperature()
+        public async Task<double> ReadTemperature()
         {
+            if (!m_IsInitialized)
+            {
+                await PowerUp();
+            }
             int adcTemperature = Read16(REGISTER_TEMPDATA);
             adcTemperature <<= 8;
             adcTemperature |= Read8(REGISTER_TEMPDATA + 2);
@@ -105,8 +109,15 @@ namespace tempprovider
             return temperature / 100;
         }
 
-        public double ReadPressure()
+        public async Task<double> ReadPressure()
         {
+            if (!m_IsInitialized)
+            {
+                await PowerUp();
+            }
+            if (m_Normalized == int.MinValue)
+            {
+            }
             int adcPreassure = Read16(REGISTER_PRESSUREDATA);
             adcPreassure <<= 8;
             adcPreassure |= Read8(REGISTER_PRESSUREDATA + 2);
@@ -118,7 +129,7 @@ namespace tempprovider
             var2 = var2 + ((long)m_Calibration.P4 << 35);
             var1 = ((var1 * var1 * m_Calibration.P3) >> 8) +
                 ((var1 * m_Calibration.P2) << 12);
-            var1 = ((1 << 47) + var1) * m_Calibration.P1 >> 33;
+            var1 = ((((long)1 << 47) + var1) * m_Calibration.P1) >> 33;
 
             if (var1 == 0)
             {
@@ -133,15 +144,14 @@ namespace tempprovider
             return preassure / 256;
         }
 
-        public double ReadAltitude(double seaLevelhPa)
+        public double ReadAltitude(double currentPressure, double seaLevelhPa)
         {
-            var preassure = ReadPressure();
-            preassure /= 100;
-            var altitude = 44330 * (1.0 - Math.Pow(preassure / seaLevelhPa, 0.1903));
+            var pressure = currentPressure /= 100;
+            var altitude = 44330 * (1.0 - Math.Pow(pressure / seaLevelhPa, 0.1903));
             return altitude;
         }
 
-        private void ReadCoefficients()
+        private async Task ReadCoefficients()
         {
             m_Calibration.T1 = Read16LittleEndian(REGISTER_DIG_T1);
             m_Calibration.T2 = (short)Read16LittleEndian(REGISTER_DIG_T2);
@@ -156,6 +166,8 @@ namespace tempprovider
             m_Calibration.P7 = (short)Read16LittleEndian(REGISTER_DIG_P7);
             m_Calibration.P8 = (short)Read16LittleEndian(REGISTER_DIG_P8);
             m_Calibration.P9 = (short)Read16LittleEndian(REGISTER_DIG_P9);
+
+            await Task.Delay(1);
         }
 
         /// <summary>
@@ -190,12 +202,9 @@ namespace tempprovider
 
             m_Device.WriteRead(address, data);
 
-            if (!BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(data);
-            }
-            var result = BitConverter.ToUInt16(data, 0);
-            return result;
+            int h = data[1] << 8;
+            int l = data[0];
+            return (ushort)(h + l);
         }
 
         /// <summary>

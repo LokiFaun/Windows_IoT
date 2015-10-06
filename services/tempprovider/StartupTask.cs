@@ -9,6 +9,8 @@ using uPLibrary.Networking.M2Mqtt.Exceptions;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 // The Background Application template is documented at http://go.microsoft.com/fwlink/?LinkID=533884&clcid=0x409
 
@@ -19,11 +21,15 @@ namespace tempprovider
         private const string m_DeviceSelector = "I2C1";
         private const string m_Host = "127.0.0.1";
         private const string m_TemperatureTopic = "/schuetz/temperature";
+        private const string m_LocalWheaterService = "http://www.zamg.ac.at/ogd";
         private const string m_PressureTopic = "/schuetz/preassure";
+        private const string m_CsvColumnName = "\"LDred hPa\"";
+        private const string m_CsvRowSearchString = "Eisenstadt";
         private const byte m_QoS = 1;
         private const bool m_RetainMessage = true;
         private const int m_TimerDueTime = 1000;
         private const int m_TimerInterval = 2000;
+        private const double m_MeanSeaLevelhPa = 1013.25;
 
         private readonly string m_ClientId = Guid.NewGuid().ToString();
         private readonly ManualResetEvent m_ShutdownEvent = new ManualResetEvent(false);
@@ -52,7 +58,7 @@ namespace tempprovider
 
             // initialize sensor
             m_Sensor = new BMP280(m_Device);
-            m_Sensor.PowerUp();
+            await m_Sensor.PowerUp();
 
             // initialize MQTT
             try
@@ -71,10 +77,10 @@ namespace tempprovider
             m_Timer = new Timer(TemperatureProvider, null, m_TimerDueTime, m_TimerInterval);
         }
 
-        private void TemperatureProvider(object state)
+        private async void TemperatureProvider(object state)
         {
             // read the temperature values
-            var currentTemperature = m_Sensor.ReadTemperature();
+            var currentTemperature = await m_Sensor.ReadTemperature();
             m_TemperatureValues.Enqueue(currentTemperature);
             while (m_TemperatureValues.Count > 10)
             {
@@ -83,14 +89,17 @@ namespace tempprovider
             var temperature = m_TemperatureValues.Average(x => x);
 
             // read the pressure values
-            var currentPressure = m_Sensor.ReadPressure();
+            var currentPressure = await m_Sensor.ReadPressure();
             m_PressureValues.Enqueue(currentPressure);
             while (m_PressureValues.Count > 10)
             {
                 m_PressureValues.Dequeue();
             }
             var pressure = m_PressureValues.Average(x => x);
+            var seaLevelhPa = await RetrieveSeaLevelhPa();
+            var altitude = m_Sensor.ReadAltitude(pressure, seaLevelhPa);
 
+            Debug.WriteLine(string.Format("Publishing: temperature={0}, pressure={1}, altitude={2}", temperature, pressure / 100, altitude));
             // publish the sensor values
             try
             {
@@ -102,7 +111,6 @@ namespace tempprovider
                 {
                     m_Client.Connect(m_ClientId);
                 }
-                Debug.WriteLine(string.Format("Publishing: temperature={0}, pressure={1}", temperature, pressure));
                 m_Client.Publish(m_TemperatureTopic, Encoding.UTF8.GetBytes(temperature.ToString()), m_QoS, m_RetainMessage);
                 m_Client.Publish(m_PressureTopic, Encoding.UTF8.GetBytes(pressure.ToString()), m_QoS, m_RetainMessage);
             }
@@ -116,6 +124,38 @@ namespace tempprovider
         private void TaskInstanceCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
         {
             m_Deferral.Complete();
+        }
+
+        private async Task<double> RetrieveSeaLevelhPa()
+        {
+            var httpClient = new HttpClient();
+            try
+            {
+                var response = await httpClient.GetAsync(m_LocalWheaterService);
+                var csvFile = await response.Content.ReadAsStringAsync();
+                var lines = csvFile.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                if (lines.Length < 1)
+                {
+                    Debug.WriteLine("Cannot retrieve sea-level hPa: invalid CSV");
+                    return m_MeanSeaLevelhPa;
+                }
+                var csvHeaders = lines[0].Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                var hPaIndex = csvHeaders.IndexOf(m_CsvColumnName);
+                var line = lines.FirstOrDefault(x => x.Contains(m_CsvRowSearchString));
+                var lineValues = line.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                if (hPaIndex > lineValues.Count)
+                {
+                    Debug.WriteLine("Cannot retrieve sea-level hPa: invalid CSV" );
+                    return m_MeanSeaLevelhPa;
+                }
+                var value = lineValues[hPaIndex];
+                return double.Parse(value);
+            }
+            catch (HttpRequestException ex)
+            {
+                Debug.WriteLine("Cannot retrieve sea-level hPa: " + ex.Message);
+                return m_MeanSeaLevelhPa;
+            }
         }
 
         #region IDisposable Support
