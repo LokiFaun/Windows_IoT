@@ -15,7 +15,7 @@
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
+                <RowDefinition Height="2*" />
                 <RowDefinition Height="3*" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
@@ -25,7 +25,7 @@
                        HorizontalAlignment="Stretch"
                        TextWrapping="Wrap"
                        TextAlignment="Center"
-                       Text="Temperature" />
+                       Text="Temperature (°C)" />
             <Slider Orientation="Vertical"
                     Grid.Row="1"
                     Margin="10"
@@ -45,7 +45,7 @@
         </Grid>
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
+                <RowDefinition Height="2*" />
                 <RowDefinition Height="3*" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
@@ -55,7 +55,7 @@
                        HorizontalAlignment="Stretch"
                        TextWrapping="Wrap"
                        TextAlignment="Center"
-                       Text="Luminosity" />
+                       Text="Luminosity (lux)" />
             <Slider Orientation="Vertical"
                     Grid.Row="1"
                     Margin="10"
@@ -75,7 +75,7 @@
         </Grid>
         <Grid Grid.Column="2">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
+                <RowDefinition Height="2*" />
                 <RowDefinition Height="3*" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
@@ -83,14 +83,25 @@
                        Margin="10"
                        VerticalAlignment="Center"
                        HorizontalAlignment="Stretch"
+                       TextWrapping="Wrap"
                        TextAlignment="Center"
-                       Text="Light-Switch" />
-            <Button Grid.Row="1"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
+                       Text="Pressure (hPa)" />
+            <Slider Orientation="Vertical"
+                    Grid.Row="1"
                     Margin="10"
-                    Content="Light"
-                    Command="{Binding Path=LightSwitchCommand}" />
+                    HorizontalAlignment="Center"
+                    Minimum="800"
+                    Maximum="1200"
+                    Value="{Binding Path=CurrentPressure}"
+                    IsEnabled="False"
+                    CanDrag="False" />
+            <TextBlock Grid.Row="2"
+                       Margin="10"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Stretch"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Text="{Binding Path=CurrentPressure}" />
         </Grid>
     </Grid>
 </Page>
