@@ -46,6 +46,9 @@
             <iot:Task Type="startup" />
           </BackgroundTasks>
         </Extension>
+        <uap:Extension Category="windows.appService" EntryPoint="luxprovider.StartupTask">
+          <uap:AppService Name="LuxProviderService"/>
+        </uap:Extension>
       </Extensions>
     </Application>
   </Applications>

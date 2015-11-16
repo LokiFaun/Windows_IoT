@@ -46,6 +46,9 @@
             <iot:Task Type="startup" />
           </BackgroundTasks>
         </Extension>
+        <uap:Extension Category="windows.appService" EntryPoint="tempprovider.StartupTask">
+          <uap:AppService Name="TempProviderService"/>
+        </uap:Extension>
       </Extensions>
     </Application>
   </Applications>

@@ -26,6 +26,9 @@
             <iot:Task Type="startup" />
           </BackgroundTasks>
         </Extension>
+        <uap:Extension Category="windows.appService" EntryPoint="mqttbroker.StartupTask">
+          <uap:AppService Name="MqttBrokerService"/>
+        </uap:Extension>
       </Extensions>
     </Application>
   </Applications>

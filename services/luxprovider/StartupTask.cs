@@ -6,9 +6,11 @@ using System.Text;
 using System.Threading;
 using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Exceptions;
+using Windows.ApplicationModel.AppService;
 using Windows.ApplicationModel.Background;
 using Windows.Devices.Enumeration;
 using Windows.Devices.I2c;
+using Windows.Foundation.Collections;
 
 namespace luxprovider
 {
@@ -32,6 +34,8 @@ namespace luxprovider
         private readonly Queue<ulong> m_LuxValues = new Queue<ulong>();
         private MqttClient m_Client = null;
         private BackgroundTaskDeferral m_Deferral = null;
+        private AppServiceConnection m_AppServiceConnection;
+        private bool m_IsRunning = true;
         private I2cDevice m_Device = null;
         private TSL2561 m_Sensor = null;
         private Timer m_Timer = null;
@@ -67,6 +71,13 @@ namespace luxprovider
                 // ignore connection exception and retry to connect later
                 Debug.WriteLine("Cannot connect to MQTT broker: " + ex.Message);
                 m_Client = null;
+            }
+
+            var appService = taskInstance.TriggerDetails as AppServiceTriggerDetails;
+            if (appService != null && appService.Name == "LuxProviderService")
+            {
+                m_AppServiceConnection = appService.AppServiceConnection;
+                m_AppServiceConnection.RequestReceived += OnRequestReceived;
             }
 
             // start timer
@@ -114,9 +125,44 @@ namespace luxprovider
             }
         }
 
+        private void OnRequestReceived(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
+        {
+            var message = args.Request.Message;
+            string command = message["Command"] as string;
+            switch (command)
+            {
+                case "GET":
+                    OnGetRequestReceived(sender, args);
+                    break;
+                case "QUIT":
+                    Close();
+                    break;
+
+            }
+        }
+
+        private async void OnGetRequestReceived(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
+        {
+            var messageDeferral = args.GetDeferral();
+            var returnMessage = new ValueSet();
+            var lux = (ulong)m_LuxValues.Average(x => (decimal)x);
+            returnMessage.Add("Lux", lux);
+            await args.Request.SendResponseAsync(returnMessage);
+            messageDeferral.Complete();
+        }
+
+        private void Close()
+        {
+            if (m_IsRunning)
+            {
+                m_Deferral.Complete();
+                m_IsRunning = false;
+            }
+        }
+
         private void TaskInstanceCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
         {
-            m_Deferral.Complete();
+            Close();
         }
 
         #region IDisposable Support

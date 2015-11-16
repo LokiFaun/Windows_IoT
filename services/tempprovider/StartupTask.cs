@@ -11,6 +11,8 @@ using System.Linq;
 using System.Text;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.AppService;
+using Windows.Foundation.Collections;
 
 // The Background Application template is documented at http://go.microsoft.com/fwlink/?LinkID=533884&clcid=0x409
 
@@ -37,6 +39,8 @@ namespace tempprovider
         private readonly Queue<double> m_PressureValues = new Queue<double>();
         private MqttClient m_Client = null;
         private BackgroundTaskDeferral m_Deferral = null;
+        private AppServiceConnection m_AppServiceConnection;
+        private bool m_IsRunning = true;
         private I2cDevice m_Device = null;
         private Timer m_Timer = null;
         private BMP280 m_Sensor = null;
@@ -71,6 +75,13 @@ namespace tempprovider
                 // ignore connection exception and retry to connect later
                 Debug.WriteLine("Cannot connect to MQTT broker: " + ex.Message);
                 m_Client = null;
+            }
+
+            var appService = taskInstance.TriggerDetails as AppServiceTriggerDetails;
+            if (appService != null && appService.Name == "TempProviderService")
+            {
+                m_AppServiceConnection = appService.AppServiceConnection;
+                m_AppServiceConnection.RequestReceived += OnRequestReceived;
             }
 
             // start timer
@@ -121,9 +132,49 @@ namespace tempprovider
             }
         }
 
+        private void OnRequestReceived(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
+        {
+            var message = args.Request.Message;
+            string command = message["Command"] as string;
+            switch (command)
+            {
+                case "GET":
+                    OnGetRequestReceived(sender, args);
+                    break;
+                case "QUIT":
+                    Close();
+                    break;
+
+            }
+        }
+
+        private async void OnGetRequestReceived(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
+        {
+            var messageDeferral = args.GetDeferral();
+            var returnMessage = new ValueSet();
+            var pressure = m_PressureValues.Average(x => x);
+            var temperature = m_TemperatureValues.Average(x => x);
+            var seaLevelhPa = await RetrieveSeaLevelhPa();
+            var altitude = m_Sensor.ReadAltitude(pressure, seaLevelhPa);
+            returnMessage.Add("Temperature", temperature);
+            returnMessage.Add("Pressure", pressure / 100);
+            returnMessage.Add("Altitude", altitude);
+            await args.Request.SendResponseAsync(returnMessage);
+            messageDeferral.Complete();
+        }
+
+        private void Close()
+        {
+            if (m_IsRunning)
+            {
+                m_Deferral.Complete();
+                m_IsRunning = false;
+            }
+        }
+
         private void TaskInstanceCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
         {
-            m_Deferral.Complete();
+            Close();
         }
 
         private async Task<double> RetrieveSeaLevelhPa()
