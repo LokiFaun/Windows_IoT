@@ -27,6 +27,7 @@ namespace tempprovider
         private const string m_PressureTopic = "/schuetz/preassure";
         private const string m_CsvColumnName = "\"LDred hPa\"";
         private const string m_CsvRowSearchString = "Eisenstadt";
+        private const string m_ServiceName = "TempProviderService";
         private const byte m_QoS = 1;
         private const bool m_RetainMessage = true;
         private const int m_TimerDueTime = 1000;
@@ -78,7 +79,7 @@ namespace tempprovider
             }
 
             var appService = taskInstance.TriggerDetails as AppServiceTriggerDetails;
-            if (appService != null && appService.Name == "TempProviderService")
+            if (appService != null && appService.Name == m_ServiceName)
             {
                 m_AppServiceConnection = appService.AppServiceConnection;
                 m_AppServiceConnection.RequestReceived += OnRequestReceived;

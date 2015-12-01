@@ -6,7 +6,9 @@ namespace mqttbroker
 {
     public sealed class StartupTask : IBackgroundTask
     {
-        private MqttBroker m_Broker = null;
+        private const string m_ServiceName = "MqttBrokerService";
+
+        private readonly MqttBroker m_Broker = new MqttBroker();
         private BackgroundTaskDeferral m_Deferral;
         private AppServiceConnection m_AppServiceConnection;
         private bool m_IsRunning = true;
@@ -17,13 +19,12 @@ namespace mqttbroker
             taskInstance.Canceled += TaskInstanceCanceled;
 
             var appService = taskInstance.TriggerDetails as AppServiceTriggerDetails;
-            if (appService != null && appService.Name == "MqttBrokerService")
+            if (appService != null && appService.Name == m_ServiceName)
             {
                 m_AppServiceConnection = appService.AppServiceConnection;
                 m_AppServiceConnection.RequestReceived += OnRequestReceived;
             }
 
-            m_Broker = new MqttBroker();
             m_Broker.Start();
         }
 

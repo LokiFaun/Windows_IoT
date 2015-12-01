@@ -22,6 +22,7 @@ namespace luxprovider
         private const string m_LuxChannel2Topic = "/schuetz/lux/channel/2";
         private const string m_LuxRatioTopic = "/schuetz/lux/ratio";
         private const string m_LuxTopic = "/schuetz/lux";
+        private const string m_ServiceName = "LuxProviderService";
         private const byte m_QoS = 1;
         private const bool m_RetainMessage = true;
         private const int m_TimerDueTime = 1000;
@@ -74,7 +75,7 @@ namespace luxprovider
             }
 
             var appService = taskInstance.TriggerDetails as AppServiceTriggerDetails;
-            if (appService != null && appService.Name == "LuxProviderService")
+            if (appService != null && appService.Name == m_ServiceName)
             {
                 m_AppServiceConnection = appService.AppServiceConnection;
                 m_AppServiceConnection.RequestReceived += OnRequestReceived;
