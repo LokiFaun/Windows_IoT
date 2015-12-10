@@ -1,0 +1,2 @@
+iotstartup remove headless tempprovider
+iotstartup remove headless luxprovider

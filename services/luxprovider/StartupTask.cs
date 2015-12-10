@@ -22,6 +22,7 @@ namespace luxprovider
         private const string m_LuxChannel2Topic = "/schuetz/lux/channel/2";
         private const string m_LuxRatioTopic = "/schuetz/lux/ratio";
         private const string m_LuxTopic = "/schuetz/lux";
+        private const string m_ServiceTopic = "/schuetz/services/lux";
         private const string m_ServiceName = "LuxProviderService";
         private const byte m_QoS = 1;
         private const bool m_RetainMessage = true;
@@ -80,6 +81,8 @@ namespace luxprovider
                 m_AppServiceConnection = appService.AppServiceConnection;
                 m_AppServiceConnection.RequestReceived += OnRequestReceived;
             }
+
+            m_Client.Publish(m_ServiceTopic, Encoding.UTF8.GetBytes(DateTime.Now.ToUniversalTime().ToString("O")), m_QoS, true);
 
             // start timer
             m_Timer = new Timer(LuxProvider, null, m_TimerDueTime, m_TimerInterval);

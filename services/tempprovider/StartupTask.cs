@@ -25,6 +25,8 @@ namespace tempprovider
         private const string m_TemperatureTopic = "/schuetz/temperature";
         private const string m_LocalWheaterService = "http://www.zamg.ac.at/ogd";
         private const string m_PressureTopic = "/schuetz/preassure";
+        private const string m_AltitudeTopic = "/schuetz/altitude";
+        private const string m_ServiceTopic = "/schuetz/services/preassure";
         private const string m_CsvColumnName = "\"LDred hPa\"";
         private const string m_CsvRowSearchString = "Eisenstadt";
         private const string m_ServiceName = "TempProviderService";
@@ -85,6 +87,8 @@ namespace tempprovider
                 m_AppServiceConnection.RequestReceived += OnRequestReceived;
             }
 
+            m_Client.Publish(m_ServiceTopic, Encoding.UTF8.GetBytes(DateTime.Now.ToUniversalTime().ToString("O")), m_QoS, true);
+
             // start timer
             m_Timer = new Timer(TemperatureProvider, null, m_TimerDueTime, m_TimerInterval);
         }
@@ -125,6 +129,7 @@ namespace tempprovider
                 }
                 m_Client.Publish(m_TemperatureTopic, Encoding.UTF8.GetBytes(temperature.ToString()), m_QoS, m_RetainMessage);
                 m_Client.Publish(m_PressureTopic, Encoding.UTF8.GetBytes(pressure.ToString()), m_QoS, m_RetainMessage);
+                m_Client.Publish(m_AltitudeTopic, Encoding.UTF8.GetBytes(altitude.ToString()), m_QoS, m_RetainMessage);
             }
             catch (MqttConnectionException ex)
             {
