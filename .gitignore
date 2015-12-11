@@ -196,3 +196,4 @@ FakesAssemblies/
 *.opt
 services/mqttbroker/project.lock.json
 services/tempprovider/project.lock.json
+/tools/tools.VC.opendb

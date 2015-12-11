@@ -54,9 +54,9 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	DWORDLONG available = free_bytes_available.QuadPart / KB_DIV;
-	DWORDLONG total = total_number_of_bytes.QuadPart / KB_DIV;
-	DWORDLONG total_free = total_number_of_free_bytes.QuadPart / KB_DIV;
+	const DWORDLONG available = free_bytes_available.QuadPart / KB_DIV;
+	const DWORDLONG total = total_number_of_bytes.QuadPart / KB_DIV;
+	const DWORDLONG total_free = total_number_of_free_bytes.QuadPart / KB_DIV;
 
 	print_message_line("******************************************");
 	print_message_line("Disk space available", available);
