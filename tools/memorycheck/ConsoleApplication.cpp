@@ -1,7 +1,9 @@
 // ConsoleApplication.cpp : Defines the entry point for the console application.
 //
 
-#include "pch.h"
+#include <iostream>
+#include <string>
+#include <Windows.h>
 
 static const int KB_DIV = 1024;
 static const int MESSAGE_WIDTH = 30;

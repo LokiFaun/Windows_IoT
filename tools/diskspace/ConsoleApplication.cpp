@@ -1,7 +1,9 @@
 // ConsoleApplication1.cpp : Defines the entry point for the console application.
 //
 
-#include "pch.h"
+#include <iostream>
+#include <string>
+#include <Windows.h>
 
 static const int KB_DIV = 1024;
 static const int MESSAGE_WIDTH = 30;
@@ -38,7 +40,7 @@ void print_message_line(std::string const & msg, DWORDLONG value)
 	std::cout << std::right << value << std::endl;
 }
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
 	ULARGE_INTEGER free_bytes_available;
 	ULARGE_INTEGER total_number_of_bytes;
