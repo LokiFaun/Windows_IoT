@@ -24,7 +24,7 @@
                 return value;
             }
             var date = DateTime.Parse(value.ToString());
-            return date.ToString("HH:mm:ss.f", CultureInfo.InvariantCulture);
+            return date.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
         }
 
         /// <summary>

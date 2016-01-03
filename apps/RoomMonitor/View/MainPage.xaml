@@ -26,9 +26,12 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Row="0" 
-                    Grid.Column="1" >
-            <TextBlock Text="{Binding Path=CurrentDateTime, Converter={StaticResource DateConverter}}"/>
-            <TextBlock Text="{Binding Path=CurrentDateTime, Converter={StaticResource TimeConverter}}"/>
+                    Grid.Column="0" >
+            <TextBlock Text="{Binding Path=CurrentDateTime, Converter={StaticResource DateConverter}}"
+                       FontSize="70"/>
+            <TextBlock Text="{Binding Path=CurrentDateTime, Converter={StaticResource TimeConverter}}"
+                       FontSize="70"
+                       FontFamily="Consolas"/>
         </StackPanel>
     </Grid>
 </Page>

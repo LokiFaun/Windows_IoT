@@ -77,7 +77,7 @@
                 return;
             }
 
-            var viewModel = container.ResolveNamed<MainViewModel>(MainViewModel.MainViewModelName);
+            var viewModel = container.ResolveNamed<MainViewModel>(MainViewModel.Name);
             if (viewModel == null)
             {
                 return;

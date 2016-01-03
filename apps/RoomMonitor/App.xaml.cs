@@ -8,6 +8,9 @@
     using Windows.UI.Xaml.Navigation;
 
     using Dashboard.View;
+    using Logic.Tasks;
+    using ViewModel;
+    using Windows.UI.ViewManagement;
 
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
@@ -62,6 +65,19 @@
                 Window.Current.Content = rootFrame;
             }
 
+            // add needed objects to IoC container
+            var locator = Resources["Locator"] as ViewModelLocator;
+            if (locator != null)
+            {
+                var container = locator.Container;
+
+                var dateTimeTask = new DateTimeTask(container);
+                container.Register(dateTimeTask);
+                dateTimeTask.Start();
+            }
+
+            ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
+
             if (rootFrame.Content == null)
             {
                 // When the navigation stack isn't restored navigate to the first page,
@@ -94,6 +110,19 @@
         {
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
+
+
+            // clear all resources
+            var locator = Resources["Locator"] as ViewModelLocator;
+            if (locator != null)
+            {
+                var container = locator.Container;
+                var dateTimeTask = container.Resolve<DateTimeTask>();
+                if (dateTimeTask != null)
+                {
+                    dateTimeTask.Dispose();
+                }
+            }
 
             deferral.Complete();
         }

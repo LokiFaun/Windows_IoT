@@ -10,25 +10,25 @@
         /// <summary>
         /// The global IoC container.
         /// </summary>
-        private static Container m_Container = new Container();
+        public Container Container = new Container();
 
         /// <summary>
         /// The DesignMode indicator.
         /// </summary>
-        private static bool? m_InDesignMode = null;
+        private bool? m_InDesignMode = null;
 
         /// <summary>
         /// Gets the Main view-model.
         /// </summary>
-        public static ViewModel Main
+        public ViewModel Main
         {
             get
             {
-                var viewModel = m_Container.ResolveNamed<MainViewModel>(MainViewModel.MainViewModelName);
+                var viewModel = Container.ResolveNamed<MainViewModel>(MainViewModel.Name);
                 if (viewModel == null)
                 {
-                    viewModel = new MainViewModel(m_Container);
-                    m_Container.RegisterNamed(MainViewModel.MainViewModelName, viewModel);
+                    viewModel = new MainViewModel(Container);
+                    Container.RegisterNamed(MainViewModel.Name, viewModel);
                 }
                 return viewModel;
             }
@@ -37,7 +37,7 @@
         /// <summary>
         /// Gets whether the application is in design-mode or not.
         /// </summary>
-        public static bool InDesignMode
+        public bool InDesignMode
         {
             get
             {

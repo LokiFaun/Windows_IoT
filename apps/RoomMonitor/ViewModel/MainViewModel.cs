@@ -3,7 +3,6 @@
     using System;
 
     using Logic;
-    using Logic.Tasks;
 
     internal class MainViewModel : ViewModel
     {
@@ -18,14 +17,9 @@
         private DateTime m_CurrentDateTime;
 
         /// <summary>
-        /// The date/time update task
-        /// </summary>
-        private DateTimeTask m_DateTimeTask;
-
-        /// <summary>
         /// The name of the MainViewModel.
         /// </summary>
-        public const string MainViewModelName = "Main";
+        public const string Name = "Main";
 
         /// <summary>
         /// Initializes an instance of <see cref="MainViewModel"/>
@@ -34,9 +28,6 @@
         public MainViewModel(Container container)
         {
             m_Container = container;
-            m_DateTimeTask = new DateTimeTask(container);
-            m_DateTimeTask.Start();
-
             CurrentDateTime = DateTime.Now;
         }
 
