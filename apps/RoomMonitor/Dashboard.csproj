@@ -99,9 +99,8 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Converter\StringFormatConverter.cs" />
     <Compile Include="Logic\Command.cs" />
-    <Compile Include="Converter\DateConverter.cs" />
-    <Compile Include="Converter\TimeConverter.cs" />
     <Compile Include="Logic\Container.cs" />
     <Compile Include="Logic\DispatcherHelper.cs" />
     <Compile Include="Logic\Tasks\DateTimeTask.cs" />

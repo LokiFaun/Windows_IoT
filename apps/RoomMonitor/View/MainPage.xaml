@@ -3,35 +3,83 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Dashboard.View"
-    xmlns:viewModels="using:Dashboard.ViewModel.DesignTime"
-    xmlns:converter="using:Dashboard.Converter"
+    xmlns:viewModels="using:Dashboard.ViewModel"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance viewModels:MainViewModel, IsDesignTimeCreatable=True}"
     DataContext="{Binding Source={StaticResource Locator}, Path=Main}">
-    <Page.Resources>
-        <converter:DateConverter x:Key="DateConverter"/>
-        <converter:TimeConverter x:Key="TimeConverter"/>
-    </Page.Resources>
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Row="0" 
-                    Grid.Column="0" >
-            <TextBlock Text="{Binding Path=CurrentDateTime, Converter={StaticResource DateConverter}}"
-                       FontSize="70"/>
-            <TextBlock Text="{Binding Path=CurrentDateTime, Converter={StaticResource TimeConverter}}"
+        <StackPanel Grid.Row="0"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2">
+            <TextBlock Text="{Binding Path=CurrentDateTime, Converter={StaticResource StringFormatConverter}, ConverterParameter=' {0:D}'}"
+                       FontSize="70" />
+            <TextBlock Text="{Binding Path=CurrentDateTime, Converter={StaticResource StringFormatConverter}, ConverterParameter=' {0:HH:mm:ss}'}"
                        FontSize="70"
-                       FontFamily="Consolas"/>
+                       FontFamily="Consolas" />
         </StackPanel>
+        <StackPanel Orientation="Horizontal"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2">
+            <TextBlock Text="{Binding Path=CurrentTemperature, Converter={StaticResource StringFormatConverter}, ConverterParameter=' {0} °C'}"
+                       VerticalAlignment="Center"
+                       FontSize="65"
+                       FontFamily="Consolas" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal"
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2">
+            <TextBlock Text="{Binding Path=CurrentPressure, Converter={StaticResource StringFormatConverter}, ConverterParameter=' {0} psi'}"
+                       VerticalAlignment="Center"
+                       FontSize="65"
+                       FontFamily="Consolas" />
+        </StackPanel>
+        <Grid Grid.Row="3"
+              Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock Text="Luminance"
+                       TextAlignment="Center"
+                       FontSize="55"
+                       Grid.Row="0"
+                       Grid.Column="0" />
+            <TextBlock Text="Altitude"
+                       TextAlignment="Center"
+                       FontSize="55"
+                       Grid.Row="0"
+                       Grid.Column="1" />
+            <TextBlock Text="{Binding Path=CurrentLuminance, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0} lux'}"
+                       TextAlignment="Center"
+                       FontSize="55"
+                       Grid.Row="1"
+                       Grid.Column="0" />
+            <TextBlock Text="{Binding Path=CurrentAltitude, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0} m'}"
+                       TextAlignment="Center"
+                       FontSize="55"
+                       Grid.Row="1"
+                       Grid.Column="1" />
+        </Grid>
     </Grid>
 </Page>
