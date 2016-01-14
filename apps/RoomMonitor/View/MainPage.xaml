@@ -35,7 +35,7 @@
                     Grid.Row="1"
                     Grid.Column="0"
                     Grid.ColumnSpan="2">
-            <TextBlock Text="{Binding Path=CurrentTemperature, Converter={StaticResource StringFormatConverter}, ConverterParameter=' {0} °C'}"
+            <TextBlock Text="{Binding Path=CurrentTemperature, Converter={StaticResource StringFormatConverter}, ConverterParameter=' {0,-8:F2} °C'}"
                        VerticalAlignment="Center"
                        FontSize="65"
                        FontFamily="Consolas" />
@@ -44,7 +44,7 @@
                     Grid.Row="2"
                     Grid.Column="0"
                     Grid.ColumnSpan="2">
-            <TextBlock Text="{Binding Path=CurrentPressure, Converter={StaticResource StringFormatConverter}, ConverterParameter=' {0} psi'}"
+            <TextBlock Text="{Binding Path=CurrentPressure, Converter={StaticResource StringFormatConverter}, ConverterParameter=' {0,-8:F2} psi'}"
                        VerticalAlignment="Center"
                        FontSize="65"
                        FontFamily="Consolas" />
@@ -70,12 +70,12 @@
                        FontSize="55"
                        Grid.Row="0"
                        Grid.Column="1" />
-            <TextBlock Text="{Binding Path=CurrentLuminance, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0} lux'}"
+            <TextBlock Text="{Binding Path=CurrentLuminance, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0,-5} lux'}"
                        TextAlignment="Center"
                        FontSize="55"
                        Grid.Row="1"
                        Grid.Column="0" />
-            <TextBlock Text="{Binding Path=CurrentAltitude, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0} m'}"
+            <TextBlock Text="{Binding Path=CurrentAltitude, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0,-8:F2} m'}"
                        TextAlignment="Center"
                        FontSize="55"
                        Grid.Row="1"

@@ -1,16 +1,17 @@
 ﻿namespace Dashboard
 {
+    using Dashboard.View;
+    using Logic;
+    using Logic.Tasks;
     using System;
+    using uPLibrary.Networking.M2Mqtt;
+    using ViewModel;
     using Windows.ApplicationModel;
     using Windows.ApplicationModel.Activation;
+    using Windows.UI.ViewManagement;
     using Windows.UI.Xaml;
     using Windows.UI.Xaml.Controls;
     using Windows.UI.Xaml.Navigation;
-
-    using Dashboard.View;
-    using Logic.Tasks;
-    using ViewModel;
-    using Windows.UI.ViewManagement;
 
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
@@ -37,7 +38,6 @@
         /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
-
 #if DEBUG
             if (System.Diagnostics.Debugger.IsAttached)
             {
@@ -70,10 +70,17 @@
             if (locator != null)
             {
                 var container = locator.Container;
+                container.RegisterNamed("Locator", locator);
 
                 var dateTimeTask = new DateTimeTask(container);
                 container.Register(dateTimeTask);
                 dateTimeTask.Start();
+
+                var client = new MqttClient("schuetz-pi2");
+                container.Register(client);
+
+                var telemetryProvider = new TelemetryProvider(container);
+                container.Register(telemetryProvider);
             }
 
             ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
@@ -94,7 +101,7 @@
         /// </summary>
         /// <param name="sender">The Frame which failed navigation</param>
         /// <param name="e">Details about the navigation failure</param>
-        void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
+        private void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
         {
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
         }
@@ -111,7 +118,6 @@
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
 
-
             // clear all resources
             var locator = Resources["Locator"] as ViewModelLocator;
             if (locator != null)
@@ -121,6 +127,12 @@
                 if (dateTimeTask != null)
                 {
                     dateTimeTask.Dispose();
+                }
+
+                var telemetryProvider = container.Resolve<TelemetryProvider>();
+                if (telemetryProvider != null)
+                {
+                    telemetryProvider.Dispose();
                 }
             }
 

@@ -46,11 +46,22 @@
         /// <param name="container"></param>
         public MainViewModel(Container container)
         {
-            m_Container = container;
             CurrentDateTime = DateTime.Now;
-            CurrentTemperature = 21.5;
-            CurrentPressure = 1025.5;
-            CurrentLuminance = 3000;
+
+            m_Container = container;
+            var locator = container.ResolveNamed<ViewModelLocator>("Locator");
+            if (locator != null && locator.InDesignMode)
+            {
+                CurrentTemperature = 21.5;
+                CurrentPressure = 1025.5;
+                CurrentLuminance = 3000;
+            }
+            else
+            {
+                CurrentTemperature = 0;
+                CurrentPressure = 0;
+                CurrentLuminance = 0;
+            }
         }
 
         /// <summary>
