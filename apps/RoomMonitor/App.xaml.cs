@@ -2,7 +2,6 @@
 {
     using Dashboard.View;
     using Logic;
-    using Logic.Tasks;
     using System;
     using uPLibrary.Networking.M2Mqtt;
     using ViewModel;
@@ -72,7 +71,7 @@
                 var container = locator.Container;
                 container.RegisterNamed("Locator", locator);
 
-                var dateTimeTask = new DateTimeTask(container);
+                var dateTimeTask = new DateTimeProvider(container);
                 container.Register(dateTimeTask);
                 dateTimeTask.Start();
 
@@ -123,7 +122,7 @@
             if (locator != null)
             {
                 var container = locator.Container;
-                var dateTimeTask = container.Resolve<DateTimeTask>();
+                var dateTimeTask = container.Resolve<DateTimeProvider>();
                 if (dateTimeTask != null)
                 {
                     dateTimeTask.Dispose();

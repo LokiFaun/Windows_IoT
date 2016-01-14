@@ -1,4 +1,4 @@
-﻿namespace Dashboard.Logic.Tasks
+﻿namespace Dashboard.Logic
 {
     using System;
     using System.Threading;
@@ -8,7 +8,7 @@
     /// <summary>
     /// Task for updating the displayed date and time in the main view-model.
     /// </summary>
-    internal class DateTimeTask : IDisposable
+    internal class DateTimeProvider : IDisposable
     {
         /// <summary>
         /// The timer
@@ -31,10 +31,10 @@
         private const int Infinite = -1;
 
         /// <summary>
-        /// Initializes an instance of the <see cref="DateTimeTask"/>
+        /// Initializes an instance of the <see cref="DateTimeProvider"/>
         /// </summary>
         /// <param name="container"></param>
-        public DateTimeTask(Container container)
+        public DateTimeProvider(Container container)
         {
             m_Timer = new Timer(Callback, container, Infinite, Infinite);
         }
@@ -46,7 +46,7 @@
         {
             if (m_IsDisposed)
             {
-                throw new ObjectDisposedException(nameof(DateTimeTask));
+                throw new ObjectDisposedException(nameof(DateTimeProvider));
             }
 
             m_Timer.Change(TimeSpan.Zero, TimeSpan.FromSeconds(Period));
@@ -59,7 +59,7 @@
         {
             if (m_IsDisposed)
             {
-                throw new ObjectDisposedException(nameof(DateTimeTask));
+                throw new ObjectDisposedException(nameof(DateTimeProvider));
             }
 
             m_Timer.Change(Infinite, Infinite);

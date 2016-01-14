@@ -103,7 +103,7 @@
     <Compile Include="Logic\Command.cs" />
     <Compile Include="Logic\Container.cs" />
     <Compile Include="Logic\DispatcherHelper.cs" />
-    <Compile Include="Logic\Tasks\DateTimeTask.cs" />
+    <Compile Include="Logic\DateTimeProvider.cs" />
     <Compile Include="Logic\TelemetryProvider.cs" />
     <Compile Include="Model\RSS\AtomLink.cs" />
     <Compile Include="Model\RSS\Rss.cs" />
