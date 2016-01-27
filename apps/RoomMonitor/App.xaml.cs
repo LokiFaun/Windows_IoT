@@ -80,6 +80,10 @@
 
                 var telemetryProvider = new TelemetryProvider(container);
                 container.Register(telemetryProvider);
+
+                var rssProvider = new RssProvider(container);
+                container.Register(rssProvider);
+                rssProvider.Start();
             }
 
             ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
@@ -132,6 +136,12 @@
                 if (telemetryProvider != null)
                 {
                     telemetryProvider.Dispose();
+                }
+
+                var rssProvider = container.Resolve<RssProvider>();
+                if (rssProvider != null)
+                {
+                    rssProvider.Dispose();
                 }
             }
 

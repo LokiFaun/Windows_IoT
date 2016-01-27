@@ -11,10 +11,10 @@
     DataContext="{Binding Source={StaticResource Locator}, Path=Main}">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="72" />
+            <RowDefinition Height="72" />
+            <RowDefinition Height="72" />
+            <RowDefinition Height="144" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -24,33 +24,37 @@
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Row="0"
                     Grid.Column="0"
-                    Grid.ColumnSpan="2">
-            <TextBlock Text="{Binding Path=CurrentDateTime, Converter={StaticResource StringFormatConverter}, ConverterParameter=' {0:D}'}"
-                       FontSize="70" />
-            <TextBlock Text="{Binding Path=CurrentDateTime, Converter={StaticResource StringFormatConverter}, ConverterParameter=' {0:HH:mm:ss}'}"
-                       FontSize="70"
+                    Grid.ColumnSpan="2"
+                    Margin="10 0 0 0">
+            <TextBlock Text="{Binding Path=CurrentDateTime, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0:D}'}"
+                       FontSize="48" />
+            <TextBlock Text="{Binding Path=CurrentDateTime, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0:HH:mm:ss}'}"
+                       FontSize="48"
                        FontFamily="Consolas" />
         </StackPanel>
         <StackPanel Orientation="Horizontal"
+                    Margin="10 0 0 0"
                     Grid.Row="1"
                     Grid.Column="0"
                     Grid.ColumnSpan="2">
-            <TextBlock Text="{Binding Path=CurrentTemperature, Converter={StaticResource StringFormatConverter}, ConverterParameter=' {0,-8:F2} °C'}"
+            <TextBlock Text="{Binding Path=CurrentTemperature, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0,-8:F2} °C'}"
                        VerticalAlignment="Center"
-                       FontSize="65"
+                       FontSize="36"
                        FontFamily="Consolas" />
         </StackPanel>
         <StackPanel Orientation="Horizontal"
+                    Margin="10 0 0 0"
                     Grid.Row="2"
                     Grid.Column="0"
                     Grid.ColumnSpan="2">
-            <TextBlock Text="{Binding Path=CurrentPressure, Converter={StaticResource StringFormatConverter}, ConverterParameter=' {0,-8:F2} psi'}"
+            <TextBlock Text="{Binding Path=CurrentPressure, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0,-8:F2} psi'}"
                        VerticalAlignment="Center"
-                       FontSize="65"
+                       FontSize="36"
                        FontFamily="Consolas" />
         </StackPanel>
         <Grid Grid.Row="3"
-              Grid.Column="0">
+              Grid.Column="0"
+              Margin="10 0 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -61,25 +65,39 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <TextBlock Text="Luminance"
-                       TextAlignment="Center"
-                       FontSize="55"
+                       TextAlignment="Left"
+                       FontSize="32"
                        Grid.Row="0"
                        Grid.Column="0" />
             <TextBlock Text="Altitude"
-                       TextAlignment="Center"
-                       FontSize="55"
+                       TextAlignment="Left"
+                       FontSize="32"
                        Grid.Row="0"
                        Grid.Column="1" />
             <TextBlock Text="{Binding Path=CurrentLuminance, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0,-5} lux'}"
-                       TextAlignment="Center"
-                       FontSize="55"
+                       TextAlignment="Left"
+                       FontSize="32"
                        Grid.Row="1"
                        Grid.Column="0" />
             <TextBlock Text="{Binding Path=CurrentAltitude, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0,-8:F2} m'}"
-                       TextAlignment="Center"
-                       FontSize="55"
+                       TextAlignment="Left"
+                       FontSize="32"
                        Grid.Row="1"
                        Grid.Column="1" />
         </Grid>
+        <ListBox Grid.Row="4"
+                 Grid.Column="2"
+                 ItemsSource="{Binding}"
+                 DataContext="{Binding Path=FeedItems}"
+                 Margin="0 0 10 0">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Path=Title.Text}"
+                               TextWrapping="WrapWholeWords"
+                               FontSize="24"
+                               TextAlignment="Left" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
     </Grid>
 </Page>

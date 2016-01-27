@@ -2,6 +2,8 @@
 {
     using Logic;
     using System;
+    using System.Collections.Generic;
+    using Windows.Web.Syndication;
 
     internal class MainViewModel : ViewModel
     {
@@ -39,6 +41,11 @@
         /// The current temperature
         /// </summary>
         private double m_CurrentTemperature;
+
+        /// <summary>
+        /// The RSS feed items
+        /// </summary>
+        private IEnumerable<SyndicationItem> m_FeedItems;
 
         /// <summary>
         /// Initializes an instance of <see cref="MainViewModel"/>
@@ -126,6 +133,19 @@
             {
                 m_CurrentTemperature = value;
                 NotifyPropertyChanged(nameof(CurrentTemperature));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the RSS feed items
+        /// </summary>
+        public IEnumerable<SyndicationItem> FeedItems
+        {
+            get { return m_FeedItems; }
+            set
+            {
+                m_FeedItems = value;
+                NotifyPropertyChanged(nameof(FeedItems));
             }
         }
     }

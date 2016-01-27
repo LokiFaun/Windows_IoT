@@ -11,6 +11,16 @@
     internal class DateTimeProvider : IDisposable
     {
         /// <summary>
+        /// The update period for disabling the timer
+        /// </summary>
+        private const int Infinite = -1;
+
+        /// <summary>
+        /// The update period in seconds
+        /// </summary>
+        private const int Period = 1;
+
+        /// <summary>
         /// The timer
         /// </summary>
         private readonly Timer m_Timer;
@@ -21,22 +31,21 @@
         private bool m_IsDisposed = false;
 
         /// <summary>
-        /// The update period in seconds
-        /// </summary>
-        private const int Period = 1;
-
-        /// <summary>
-        /// The update period for disabling the timer
-        /// </summary>
-        private const int Infinite = -1;
-
-        /// <summary>
         /// Initializes an instance of the <see cref="DateTimeProvider"/>
         /// </summary>
         /// <param name="container"></param>
         public DateTimeProvider(Container container)
         {
             m_Timer = new Timer(Callback, container, Infinite, Infinite);
+        }
+
+        /// <summary>
+        /// Disposes the instance
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -66,6 +75,23 @@
         }
 
         /// <summary>
+        /// Disposes the instance references
+        /// </summary>
+        /// <param name="disposing"><c>true</c> to dispose references</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (m_IsDisposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                m_Timer.Dispose();
+            }
+        }
+
+        /// <summary>
         /// The timer callback for updating the main view-model
         /// </summary>
         /// <param name="state">The IoC container for resolving needed objects</param>
@@ -87,32 +113,6 @@
             {
                 viewModel.CurrentDateTime = DateTime.Now;
             });
-        }
-
-        /// <summary>
-        /// Disposes the instance
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Disposes the instance references
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to dispose references</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (m_IsDisposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                m_Timer.Dispose();
-            }
         }
     }
 }
