@@ -1,23 +1,41 @@
-﻿using Dashboard.ViewModel;
-using System;
-using System.Diagnostics;
-using System.Net.Http;
-using System.Threading;
-using Windows.Data.Xml.Dom;
-using Windows.UI.Xaml.Media.Imaging;
-using Windows.Web.Syndication;
-
-namespace Dashboard.Logic
+﻿namespace Dashboard.Logic
 {
+    using Dashboard.ViewModel;
+    using System;
+    using System.Net.Http;
+    using System.Threading;
+    using Windows.Data.Xml.Dom;
+    using Windows.Web.Syndication;
+
+    /// <summary>
+    /// Provider for displaying the newest submissions to 'r/worldnews/
+    /// </summary>
     internal class RssProvider : IDisposable
     {
+        /// <summary>
+        /// The timer
+        /// </summary>
         private readonly Timer m_Timer;
+
+        /// <summary>
+        /// Indicates wheter the object is disposed or not
+        /// </summary>
         private bool m_IsDisposed = false;
 
+        /// <summary>
+        /// Specifies the update period in minutes
+        /// </summary>
         private const int Period = 15;
 
+        /// <summary>
+        /// Specifies the infinite period for stopping the timer
+        /// </summary>
         private const int Infinite = -1;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="RssProvider"/>
+        /// </summary>
+        /// <param name="container">The IoC container</param>
         public RssProvider(Container container)
         {
             m_Timer = new Timer(Callback, container, Infinite, Infinite);
@@ -49,12 +67,19 @@ namespace Dashboard.Logic
             m_Timer.Change(Infinite, Infinite);
         }
 
+        /// <summary>
+        /// Disposes this instance
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// The timer callback for periodic updates
+        /// </summary>
+        /// <param name="state">A reference to the IoC <see cref="Container"/></param>
         private async void Callback(object state)
         {
             var container = state as Container;
@@ -65,7 +90,7 @@ namespace Dashboard.Logic
 
             var feed = new SyndicationFeed();
             var client = new HttpClient();
-            var rssString = await client.GetStringAsync("http://www.reddit.com/r/worldnews/.rss");
+            var rssString = await client.GetStringAsync("http://www.reddit.com/r/worldnews/new/.rss");
             var xmlDocument = new XmlDocument();
             xmlDocument.LoadXml(rssString);
             feed.LoadFromXml(xmlDocument);

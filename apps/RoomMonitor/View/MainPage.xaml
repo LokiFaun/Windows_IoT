@@ -89,13 +89,19 @@
                  Grid.Column="2"
                  ItemsSource="{Binding}"
                  DataContext="{Binding Path=FeedItems}"
-                 Margin="0 0 10 0">
+                 Margin="0 0 10 10">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Path=Title.Text}"
+                    <StackPanel>
+                        <TextBlock Text="{Binding Path=Title.Text}"
                                TextWrapping="WrapWholeWords"
-                               FontSize="24"
+                               FontSize="16"
                                TextAlignment="Left" />
+                        <TextBlock
+                                Grid.Column="0"
+                                Text="{Binding Path=PublishedDate, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0:HH:mm:ss dd.MM.yyyy}'}"
+                                FontSize="8" />
+                    </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
