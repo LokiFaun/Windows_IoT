@@ -1,17 +1,17 @@
-﻿using Windows.ApplicationModel.Background;
-using Windows.Devices.I2c;
-using System.Threading;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using uPLibrary.Networking.M2Mqtt;
-using Windows.Devices.Enumeration;
-using uPLibrary.Networking.M2Mqtt.Exceptions;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Net.Http;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using uPLibrary.Networking.M2Mqtt;
+using uPLibrary.Networking.M2Mqtt.Exceptions;
 using Windows.ApplicationModel.AppService;
+using Windows.ApplicationModel.Background;
+using Windows.Devices.Enumeration;
+using Windows.Devices.I2c;
 using Windows.Foundation.Collections;
 
 // The Background Application template is documented at http://go.microsoft.com/fwlink/?LinkID=533884&clcid=0x409
@@ -113,9 +113,9 @@ namespace tempprovider
             }
             var pressure = m_PressureValues.Average(x => x);
             var seaLevelhPa = await RetrieveSeaLevelhPa();
-            var altitude = m_Sensor.ReadAltitude(pressure, seaLevelhPa);
+            var altitude = m_Sensor.CalculateAltitude(pressure, seaLevelhPa);
 
-            Debug.WriteLine(string.Format("Publishing: temperature={0}, pressure={1}, altitude={2}", temperature, pressure / 100, altitude));
+            Debug.WriteLine(string.Format("Publishing: temperature={0}, pressure={1}, altitude={2}", temperature, pressure, altitude));
             // publish the sensor values
             try
             {
@@ -147,10 +147,10 @@ namespace tempprovider
                 case "GET":
                     OnGetRequestReceived(sender, args);
                     break;
+
                 case "QUIT":
                     Close();
                     break;
-
             }
         }
 
@@ -161,7 +161,7 @@ namespace tempprovider
             var pressure = m_PressureValues.Average(x => x);
             var temperature = m_TemperatureValues.Average(x => x);
             var seaLevelhPa = await RetrieveSeaLevelhPa();
-            var altitude = m_Sensor.ReadAltitude(pressure, seaLevelhPa);
+            var altitude = m_Sensor.CalculateAltitude(pressure, seaLevelhPa);
             returnMessage.Add("Temperature", temperature);
             returnMessage.Add("Pressure", pressure / 100);
             returnMessage.Add("Altitude", altitude);
@@ -202,10 +202,11 @@ namespace tempprovider
                 var lineValues = line.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
                 if (hPaIndex > lineValues.Count)
                 {
-                    Debug.WriteLine("Cannot retrieve sea-level hPa: invalid CSV" );
+                    Debug.WriteLine("Cannot retrieve sea-level hPa: invalid CSV");
                     return m_MeanSeaLevelhPa;
                 }
                 var value = lineValues[hPaIndex];
+                value = value.Replace(',', '.');
                 return double.Parse(value);
             }
             catch (HttpRequestException ex)

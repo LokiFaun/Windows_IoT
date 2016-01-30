@@ -29,8 +29,14 @@ namespace tempprovider
         private const int REGISTER_CONTROL_HUMIDITY = 0xF2;
         private const int REGISTER_CONTROL = 0xF4;
         private const int REGISTER_CONFIG = 0xF5;
-        private const int REGISTER_PRESSUREDATA = 0xF7;
-        private const int REGISTER_TEMPDATA = 0xFA;
+        private const int REGISTER_PRESSUREDATA_MSB = 0xF7;
+        private const int REGISTER_PRESSUREDATA_LSB = 0xF8;
+        private const int REGISTER_PRESSUREDATA_XLSB = 0xF9;
+        private const int REGISTER_TEMPDATA_MSB = 0xFA;
+        private const int REGISTER_TEMPDATA_LSB = 0xFB;
+        private const int REGISTER_TEMPDATA_XLSB = 0xFC;
+        private const int REGISTER_HUMIDITYDATA_MSB = 0xFD;
+        private const int REGISTER_HUMIDITYDATA_LSB = 0xFE;
 
         private struct CalibrationData
         {
@@ -94,10 +100,11 @@ namespace tempprovider
             {
                 await PowerUp();
             }
-            int adcTemperature = Read16(REGISTER_TEMPDATA);
-            adcTemperature <<= 8;
-            adcTemperature |= Read8(REGISTER_TEMPDATA + 2);
-            adcTemperature >>= 4;
+            var msb = Read8(REGISTER_TEMPDATA_MSB);
+            var lsb = Read8(REGISTER_TEMPDATA_LSB);
+            var xlsb = Read8(REGISTER_TEMPDATA_XLSB);
+
+            int adcTemperature = (msb << 12) + (lsb << 4) + (xlsb >> 4);
 
             var var1 = ((((adcTemperature >> 3) - (m_Calibration.T1 << 1))) *
                 m_Calibration.T2) >> 11;
@@ -115,13 +122,11 @@ namespace tempprovider
             {
                 await PowerUp();
             }
-            if (m_Normalized == int.MinValue)
-            {
-            }
-            int adcPreassure = Read16(REGISTER_PRESSUREDATA);
-            adcPreassure <<= 8;
-            adcPreassure |= Read8(REGISTER_PRESSUREDATA + 2);
-            adcPreassure >>= 4;
+
+            var msb = Read8(REGISTER_PRESSUREDATA_MSB);
+            var lsb = Read8(REGISTER_PRESSUREDATA_LSB);
+            var xlsb = Read8(REGISTER_PRESSUREDATA_XLSB);
+            int adcPressure = (msb << 12) + (lsb << 4) + (xlsb >> 4);
 
             var var1 = (long)m_Normalized - 128000;
             var var2 = var1 * var1 * m_Calibration.P6;
@@ -135,21 +140,18 @@ namespace tempprovider
             {
                 return 0;
             }
-            var preassure = (long)1048576 - adcPreassure;
-            preassure = (((preassure << 31) - var2) * 3125) / var1;
-            var1 = (m_Calibration.P9 * (preassure >> 13) * (preassure >> 13)) >> 25;
-            var2 = (m_Calibration.P8 * preassure) >> 19;
-            preassure = ((preassure + var1 + var2) >> 8) + (m_Calibration.P7 << 4);
+            var pressure = (long)1048576 - adcPressure;
+            pressure = (((pressure << 31) - var2) * 3125) / var1;
+            var1 = (m_Calibration.P9 * (pressure >> 13) * (pressure >> 13)) >> 25;
+            var2 = (m_Calibration.P8 * pressure) >> 19;
+            pressure = ((pressure + var1 + var2) >> 8) + (m_Calibration.P7 << 4);
 
-            return preassure / 256;
+            pressure /= 256;
+            return pressure / 100.0;
         }
 
-        public double ReadAltitude(double currentPressure, double seaLevelhPa)
-        {
-            var pressure = currentPressure /= 100;
-            var altitude = 44330 * (1.0 - Math.Pow(pressure / seaLevelhPa, 0.1903));
-            return altitude;
-        }
+        public double CalculateAltitude(double pressure, double seaLevelhPa) =>
+            44330.0 * (1.0 - Math.Pow(pressure / seaLevelhPa, 0.1903));
 
         private async Task ReadCoefficients()
         {
@@ -168,26 +170,6 @@ namespace tempprovider
             m_Calibration.P9 = (short)Read16LittleEndian(REGISTER_DIG_P9);
 
             await Task.Delay(1);
-        }
-
-        /// <summary>
-        /// Reads 2 bytes from the specified address
-        /// </summary>
-        /// <param name="addr">Register to read from</param>
-        /// <returns>2 byte register value</returns>
-        private ushort Read16(byte addr)
-        {
-            var address = new byte[] { addr };
-            var data = new byte[2];
-
-            m_Device.WriteRead(address, data);
-
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(data);
-            }
-            var result = BitConverter.ToUInt16(data, 0);
-            return result;
         }
 
         /// <summary>

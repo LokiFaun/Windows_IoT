@@ -47,7 +47,7 @@
                     Grid.Row="2"
                     Grid.Column="0"
                     Grid.ColumnSpan="2">
-            <TextBlock Text="{Binding Path=CurrentPressure, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0,-8:F2} psi'}"
+            <TextBlock Text="{Binding Path=CurrentPressure, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0,-8:F2} hPa'}"
                        VerticalAlignment="Center"
                        FontSize="36"
                        FontFamily="Consolas" />
