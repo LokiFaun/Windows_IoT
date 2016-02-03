@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<grammar version="1.0" xml:lang="en-US" root="mirrorCommands" xmlns="http://www.w3.org/2001/06/grammar" tag-format="semantics/1.0">
+  <rule id="root">
+    <item>
+      <ruleref uri="#mirrorCommands" />
+      <tag>out.command=rules.latest();</tag>
+    </item>
+  </rule>
+  <rule id="mirrorCommands">
+    <item>show</item>
+    <one-of>
+      <item>
+        <ruleref uri="#showSubreddit" />
+        <tag>out.subreddit=rules.latest()</tag>
+      </item>
+      <item>
+        <ruleref uri="#showPage" />
+        <tag>out.page=rules.latest()</tag>
+      </item>
+    </one-of>
+  </rule>
+  <rule id="showSubreddit">
+    <one-of>
+      <item>
+        subreddit today i learned<tag>out="todayilearned"</tag>
+      </item>
+      <item>
+        subreddit nfl <tag>out="nfl"</tag>
+      </item>
+      <item>
+        subreddit world news<tag>out="worldnews"</tag>
+      </item>
+    </one-of>
+  </rule>
+  <rule id="showPage">
+    <one-of>
+      <item>
+        main page<tag>out="mainpage"</tag>
+      </item>
+      <item>
+        sensor page<tag>out="sensorpage"</tag>
+      </item>
+    </one-of>
+  </rule>
+</grammar>

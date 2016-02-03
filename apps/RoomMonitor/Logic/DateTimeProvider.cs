@@ -89,6 +89,7 @@
             {
                 m_Timer.Dispose();
             }
+            m_IsDisposed = true;
         }
 
         /// <summary>

@@ -230,6 +230,7 @@
             {
                 m_Client.Disconnect();
             }
+            m_IsDisposed = true;
         }
     }
 }

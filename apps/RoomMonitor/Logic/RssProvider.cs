@@ -33,6 +33,38 @@
         private const int Infinite = -1;
 
         /// <summary>
+        /// Specifies the subreddit to retrieve the feed from
+        /// </summary>
+        private string m_Subreddit = "worldnews";
+
+        /// <summary>
+        /// Critical section
+        /// </summary>
+        private object m_Lock = new object();
+
+        /// <summary>
+        /// Gets or sets the Subreddit
+        /// </summary>
+        public string Subreddit
+        {
+            get
+            {
+                lock (m_Lock)
+                {
+                    return m_Subreddit;
+                }
+            }
+            set
+            {
+                lock (m_Lock)
+                {
+                    m_Subreddit = value;
+                    m_Timer.Change(TimeSpan.Zero, TimeSpan.FromMinutes(Period));
+                }
+            }
+        }
+
+        /// <summary>
         /// Initializes a new instance of <see cref="RssProvider"/>
         /// </summary>
         /// <param name="container">The IoC container</param>
@@ -88,18 +120,24 @@
                 return;
             }
 
-            var feed = new SyndicationFeed();
-            var client = new HttpClient();
-            var rssString = await client.GetStringAsync("http://www.reddit.com/r/worldnews/new/.rss");
-            var xmlDocument = new XmlDocument();
-            xmlDocument.LoadXml(rssString);
-            feed.LoadFromXml(xmlDocument);
-
             var viewModel = container.ResolveNamed<MainViewModel>(MainViewModel.Name);
             if (viewModel == null)
             {
                 return;
             }
+
+            var url = string.Empty;
+            lock (m_Lock)
+            {
+                url = string.Format("http://www.reddit.com/r/{0}/new/.rss", m_Subreddit);
+            }
+
+            var feed = new SyndicationFeed();
+            var client = new HttpClient();
+            var rssString = await client.GetStringAsync(url);
+            var xmlDocument = new XmlDocument();
+            xmlDocument.LoadXml(rssString);
+            feed.LoadFromXml(xmlDocument);
 
             DispatcherHelper.RunOnUIThread(() =>
             {
@@ -122,6 +160,7 @@
             {
                 m_Timer.Dispose();
             }
+            m_IsDisposed = true;
         }
     }
 }

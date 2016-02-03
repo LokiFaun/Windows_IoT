@@ -84,6 +84,10 @@
                 var rssProvider = new RssProvider(container);
                 container.Register(rssProvider);
                 rssProvider.Start();
+
+                var speechInterpreter = new SpeechInterpreter(container);
+                container.Register(speechInterpreter);
+                speechInterpreter.Start();
             }
 
             ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
@@ -142,6 +146,12 @@
                 if (rssProvider != null)
                 {
                     rssProvider.Dispose();
+                }
+
+                var speecInterpreter = container.Resolve<SpeechInterpreter>();
+                if (speecInterpreter != null)
+                {
+                    speecInterpreter.Dispose();
                 }
             }
 
