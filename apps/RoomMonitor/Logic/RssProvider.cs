@@ -120,7 +120,7 @@
                 return;
             }
 
-            var viewModel = container.ResolveNamed<MainViewModel>(MainViewModel.Name);
+            var viewModel = container.ResolveNamed<NewsViewModel>(NewsViewModel.Name);
             if (viewModel == null)
             {
                 return;

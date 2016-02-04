@@ -1,7 +1,7 @@
 ﻿namespace Dashboard.ViewModel
 {
     using Logic;
-    
+
     /// <summary>
     /// The view-model locator.
     /// </summary>
@@ -11,11 +11,6 @@
         /// The global IoC container.
         /// </summary>
         public Container Container = new Container();
-
-        /// <summary>
-        /// The DesignMode indicator.
-        /// </summary>
-        private bool? m_InDesignMode = null;
 
         /// <summary>
         /// Gets the Main view-model.
@@ -35,17 +30,19 @@
         }
 
         /// <summary>
-        /// Gets whether the application is in design-mode or not.
+        /// Gets the News view-model.
         /// </summary>
-        public bool InDesignMode
+        public ViewModel News
         {
             get
             {
-                if (!m_InDesignMode.HasValue)
+                var viewModel = Container.ResolveNamed<NewsViewModel>(NewsViewModel.Name);
+                if (viewModel == null)
                 {
-                    m_InDesignMode = Windows.ApplicationModel.DesignMode.DesignModeEnabled;
+                    viewModel = new NewsViewModel(Container);
+                    Container.RegisterNamed(NewsViewModel.Name, viewModel);
                 }
-                return m_InDesignMode.Value;
+                return viewModel;
             }
         }
     }

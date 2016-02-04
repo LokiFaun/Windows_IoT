@@ -43,32 +43,17 @@
         private double m_CurrentTemperature;
 
         /// <summary>
-        /// The RSS feed items
-        /// </summary>
-        private IEnumerable<SyndicationItem> m_FeedItems;
-
-        /// <summary>
         /// Initializes an instance of <see cref="MainViewModel"/>
         /// </summary>
         /// <param name="container"></param>
         public MainViewModel(Container container)
         {
-            CurrentDateTime = DateTime.Now;
-
             m_Container = container;
-            var locator = container.ResolveNamed<ViewModelLocator>("Locator");
-            if (locator != null && locator.InDesignMode)
-            {
-                CurrentTemperature = 21.5;
-                CurrentPressure = 1025.5;
-                CurrentLuminance = 3000;
-            }
-            else
-            {
-                CurrentTemperature = 0;
-                CurrentPressure = 0;
-                CurrentLuminance = 0;
-            }
+
+            CurrentDateTime = DateTime.Now;
+            CurrentTemperature = 0;
+            CurrentPressure = 0;
+            CurrentLuminance = 0;
         }
 
         /// <summary>
@@ -133,19 +118,6 @@
             {
                 m_CurrentTemperature = value;
                 NotifyPropertyChanged(nameof(CurrentTemperature));
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the RSS feed items
-        /// </summary>
-        public IEnumerable<SyndicationItem> FeedItems
-        {
-            get { return m_FeedItems; }
-            set
-            {
-                m_FeedItems = value;
-                NotifyPropertyChanged(nameof(FeedItems));
             }
         }
     }

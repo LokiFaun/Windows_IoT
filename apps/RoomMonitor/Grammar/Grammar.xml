@@ -3,42 +3,67 @@
   <rule id="root">
     <item>
       <ruleref uri="#mirrorCommands" />
-      <tag>out.command=rules.latest();</tag>
+      <tag>out.command=rule.latest();</tag>
     </item>
   </rule>
   <rule id="mirrorCommands">
+    <one-of>
+      <item>
+        power on<tag>out="on";</tag>
+      </item>
+      <item>
+        power off<tag>out="off";</tag>
+      </item>
+      <item>
+        <ruleref uri="#navigationCommands" />
+      </item>
+    </one-of>
+  </rule>
+  <rule id="navigationCommands">
     <item>show</item>
+    <item>me</item>
     <one-of>
       <item>
         <ruleref uri="#showSubreddit" />
-        <tag>out.subreddit=rules.latest()</tag>
       </item>
       <item>
         <ruleref uri="#showPage" />
-        <tag>out.page=rules.latest()</tag>
+        <tag>out.page=rules.latest();</tag>
       </item>
     </one-of>
   </rule>
   <rule id="showSubreddit">
+    <item>
+      subreddit
+    </item>
+    <item>
+      <ruleref uri="#subreddit" />
+      <tag>out.subreddit=rules.latest();</tag>
+    </item>
+  </rule>
+  <rule id="subreddit">
     <one-of>
       <item>
-        subreddit today i learned<tag>out="todayilearned"</tag>
+        today i learned<tag>out="todayilearned";</tag>
       </item>
       <item>
-        subreddit nfl <tag>out="nfl"</tag>
+        football<tag>out="nfl";</tag>
       </item>
       <item>
-        subreddit world news<tag>out="worldnews"</tag>
+        world news<tag>out="worldnews";</tag>
       </item>
     </one-of>
   </rule>
   <rule id="showPage">
     <one-of>
       <item>
-        main page<tag>out="mainpage"</tag>
+        time<tag>out="Main";</tag>
       </item>
       <item>
-        sensor page<tag>out="sensorpage"</tag>
+        news<tag>out="News";</tag>
+      </item>
+      <item>
+        sensors<tag>out="Sensors";</tag>
       </item>
     </one-of>
   </rule>
