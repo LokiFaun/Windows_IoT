@@ -59,6 +59,7 @@
         private static void AltitudeTimerCallback(object state)
         {
             CurrentAltitude = 44330.0 * (1.0 - Math.Pow(CurrentPressure / 1025.0, 0.1903));
+            Console.WriteLine("Pusblishing altitude: " + CurrentAltitude);
             Client.Publish(AltitudeTopic, Encoding.UTF8.GetBytes(CurrentAltitude.ToString()));
         }
 
@@ -70,6 +71,8 @@
         {
             var random = new Random();
             CurrentLux = (ulong)random.Next(1000, 6000);
+            Console.WriteLine("Pusblishing lux: " + CurrentLux);
+            Client.Publish(LuxTopic, Encoding.UTF8.GetBytes(CurrentLux.ToString()));
         }
 
         /// <summary>
@@ -78,12 +81,20 @@
         /// <param name="args">console arguments</param>
         private static void Main(string[] args)
         {
+            Console.WriteLine("Connecting to test.mosquitto.org...");
             Client.Connect(Guid.NewGuid().ToString());
 
-            var pressureTimer = new Timer(PressureTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
-            var temperatureTimer = new Timer(TemperatureTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
-            var altitudeTimer = new Timer(AltitudeTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
-            var luxTimer = new Timer(LuxTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+            Console.WriteLine("Starting simulation...");
+            using (var pressureTimer = new Timer(PressureTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(10)))
+            using (var temperatureTimer = new Timer(TemperatureTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(10)))
+            using (var altitudeTimer = new Timer(AltitudeTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(10)))
+            using (var luxTimer = new Timer(LuxTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(10)))
+            {
+                Console.ReadKey();
+                Console.WriteLine("Ending simulation...");
+            }
+
+            Client.Disconnect();
         }
 
         /// <summary>
@@ -94,6 +105,7 @@
         {
             var random = new Random();
             CurrentPressure = 1000 + (random.NextDouble() * 30);
+            Console.WriteLine("Pusblishing pressure: " + CurrentPressure);
             Client.Publish(PressureTopic, Encoding.UTF8.GetBytes(CurrentPressure.ToString()));
         }
 
@@ -105,6 +117,7 @@
         {
             var random = new Random();
             CurrentTemperature = 19 + (random.NextDouble() * 5);
+            Console.WriteLine("Pusblishing temperature: " + CurrentTemperature);
             Client.Publish(TemperatureTopic, Encoding.UTF8.GetBytes(CurrentTemperature.ToString()));
         }
     }
