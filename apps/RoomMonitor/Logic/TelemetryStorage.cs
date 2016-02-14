@@ -4,6 +4,7 @@
     using Dashboard.Model;
 
     using SQLite.Net;
+    using SQLite.Net.Interop;
     using SQLite.Net.Platform.WinRT;
 
     using System;
@@ -62,7 +63,7 @@
         /// </summary>
         /// <param name="container">The IoC container</param>
         public TelemetryStorage(Container container)
-            : base(new SQLitePlatformWinRT(), DatebaseFile)
+            : base(new SQLitePlatformWinRT(), DatebaseFile, SQLiteOpenFlags.ReadWrite)
         {
             m_Container = container;
 

@@ -12,6 +12,7 @@
 
     using uPLibrary.Networking.M2Mqtt;
     using uPLibrary.Networking.M2Mqtt.Messages;
+    using Windows.ApplicationModel;
 
     /// <summary>
     /// Provides the view-model with telemetry data
@@ -108,7 +109,8 @@
         {
             m_Container = container;
 
-            m_StorageTimer = new Timer(HandleStorageTimer, null, TimeSpan.Zero, TimeSpan.FromHours(2));
+            var dueTime = TimeSpan.FromMinutes(60 - DateTime.Now.Minute);
+            m_StorageTimer = new Timer(HandleStorageTimer, null, dueTime, TimeSpan.FromHours(2));
 
             m_Client = container.Resolve<MqttClient>();
             Task.Factory.StartNew(EstablishConnection);

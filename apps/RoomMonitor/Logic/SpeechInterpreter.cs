@@ -2,7 +2,9 @@
 {
     using Dashboard.View;
     using System;
+    using System.Threading.Tasks;
     using Windows.ApplicationModel;
+    using Windows.Media.Capture;
     using Windows.Media.SpeechRecognition;
     using Windows.UI.Xaml;
     using Windows.UI.Xaml.Controls;
@@ -58,6 +60,12 @@
                 throw new ObjectDisposedException(nameof(DateTimeProvider));
             }
 
+            var hasPermission = await HasMicrophonePermission();
+            if (!hasPermission)
+            {
+                throw new UnauthorizedAccessException("No access to microphone!");
+            }
+
             var grammarFile = await Package.Current.InstalledLocation.GetFileAsync("Grammar\\grammar.xml");
             var grammarConstraint = new SpeechRecognitionGrammarFileConstraint(grammarFile);
             m_Recognizer.Constraints.Add(grammarConstraint);
@@ -98,6 +106,25 @@
                 m_Recognizer.Dispose();
             }
             m_IsDisposed = true;
+        }
+
+        private async Task<bool> HasMicrophonePermission()
+        {
+            try
+            {
+                var settings = new MediaCaptureInitializationSettings
+                {
+                    StreamingCaptureMode = StreamingCaptureMode.Audio,
+                    MediaCategory = MediaCategory.Speech
+                };
+                var capture = new MediaCapture();
+                await capture.InitializeAsync(settings);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
