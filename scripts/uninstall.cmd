@@ -1,3 +1,3 @@
 iotstartup remove headless tempprovider
 iotstartup remove headless luxprovider
-iotstartup remove headless mqttprovider
+iotstartup remove headless mqttbroker

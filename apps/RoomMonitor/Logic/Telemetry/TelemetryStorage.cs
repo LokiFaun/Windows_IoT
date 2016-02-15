@@ -1,4 +1,4 @@
-﻿namespace Dashboard.Logic
+﻿namespace Dashboard.Logic.Telemetry
 {
     using Dashboard.Extensions;
     using Dashboard.Model;

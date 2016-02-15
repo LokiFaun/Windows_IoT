@@ -3,9 +3,53 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Dashboard.View"
+    xmlns:charts="using:WinRTXamlToolkit.Controls.DataVisualization"
+    xmlns:charting="using:WinRTXamlToolkit.Controls.DataVisualization.Charting"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    xmlns:i="using:Microsoft.Xaml.Interactivity"
+    xmlns:ic="using:Microsoft.Xaml.Interactions.Core"
+    mc:Ignorable="d"
+    DataContext="{Binding Source={StaticResource Locator}, Path=Sensors}">
+    <Page.Resources>
+        <Style x:Key="noLineDataPoint" TargetType="charting:LineDataPoint">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="Width" Value="0" />
+            <Setter Property="Height" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="charting:LineDataPoint">
+                        <Grid x:Name="Root" Opacity="0" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <charting:Chart Grid.Row="0" Title="Temperature">
+                <charting:LineSeries Grid.Row="0"
+                                     ItemsSource="{Binding Path=TemperatureValues}"
+                                     IndependentValueBinding="{Binding Path=Name}"
+                                     DependentValueBinding="{Binding Path=Value}"
+                                     DataPointStyle="{StaticResource ResourceKey=noLineDataPoint}" />
+            </charting:Chart>
+            <charting:Chart Grid.Row="1" Title="Pressure">
+                <charting:LineSeries Grid.Row="0"
+                                     ItemsSource="{Binding Path=PressureValues}"
+                                     IndependentValueBinding="{Binding Path=Name}"
+                                     DependentValueBinding="{Binding Path=Value}"
+                                     DataPointStyle="{StaticResource ResourceKey=noLineDataPoint}" />
+            </charting:Chart>
+        </Grid>
     </Grid>
 </Page>

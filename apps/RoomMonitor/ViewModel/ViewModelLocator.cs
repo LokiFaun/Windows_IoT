@@ -45,5 +45,22 @@
                 return viewModel;
             }
         }
+
+        /// <summary>
+        /// Gets the Sensors view-model.
+        /// </summary>
+        public ViewModel Sensors
+        {
+            get
+            {
+                var viewModel = Container.ResolveNamed<SensorsViewModel>(SensorsViewModel.Name);
+                if (viewModel == null)
+                {
+                    viewModel = new SensorsViewModel(Container);
+                    Container.RegisterNamed(SensorsViewModel.Name, viewModel);
+                }
+                return viewModel;
+            }
+        }
     }
 }

@@ -2,6 +2,8 @@
 {
     using Dashboard.View;
     using Logic;
+    using Logic.Speech;
+    using Logic.Telemetry;
     using System;
     using uPLibrary.Networking.M2Mqtt;
     using ViewModel;
@@ -75,7 +77,7 @@
                 container.Register(dateTimeTask);
                 dateTimeTask.Start();
 
-                var client = new MqttClient("schuetz-pi2");
+                var client = new MqttClient("192.168.1.7");
                 container.Register(client);
 
                 var telemetryProvider = new TelemetryProvider(container);

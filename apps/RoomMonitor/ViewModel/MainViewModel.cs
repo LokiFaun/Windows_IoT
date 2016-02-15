@@ -2,13 +2,11 @@
 {
     using Logic;
     using System;
-    using System.Collections.Generic;
-    using Windows.Web.Syndication;
 
     internal class MainViewModel : ViewModel
     {
         /// <summary>
-        /// The name of the MainViewModel.
+        /// The name of the <see cref="MainViewModel"/>.
         /// </summary>
         public const string Name = "Main";
 

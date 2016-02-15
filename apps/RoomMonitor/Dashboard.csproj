@@ -105,15 +105,16 @@
     <Compile Include="Logic\DispatcherHelper.cs" />
     <Compile Include="Logic\DateTimeProvider.cs" />
     <Compile Include="Extensions\Extensions.cs" />
-    <Compile Include="Logic\TelemetryStorage.cs" />
+    <Compile Include="Logic\Telemetry\TelemetryStorage.cs" />
     <Compile Include="Logic\RssProvider.cs" />
-    <Compile Include="Logic\SpeechInterpreter.cs" />
-    <Compile Include="Logic\TelemetryProvider.cs" />
+    <Compile Include="Logic\Speech\SpeechInterpreter.cs" />
+    <Compile Include="Logic\Telemetry\TelemetryProvider.cs" />
     <Compile Include="Model\Pressure.cs" />
     <Compile Include="Model\Temperature.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\NewsViewModel.cs" />
+    <Compile Include="ViewModel\SensorsViewModel.cs" />
     <Compile Include="ViewModel\ViewModel.cs" />
     <Compile Include="View\BlankPage.xaml.cs">
       <DependentUpon>BlankPage.xaml</DependentUpon>

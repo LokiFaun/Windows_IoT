@@ -10,19 +10,19 @@
     internal class NewsViewModel : ViewModel
     {
         /// <summary>
-        /// The name of the MainViewModel.
+        /// The name of the <see cref="NewsViewModel"/>.
         /// </summary>
         public const string Name = "News";
-
-        /// <summary>
-        /// The RSS feed items
-        /// </summary>
-        private IEnumerable<SyndicationItem> m_FeedItems;
 
         /// <summary>
         /// The IoC container
         /// </summary>
         private readonly Container m_Container;
+
+        /// <summary>
+        /// The RSS feed items
+        /// </summary>
+        private IEnumerable<SyndicationItem> m_FeedItems;
 
         /// <summary>
         /// Initializes a new instance of <see cref="NewsViewModel"/>

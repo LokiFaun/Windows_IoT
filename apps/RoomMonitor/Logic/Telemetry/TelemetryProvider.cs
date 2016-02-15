@@ -1,18 +1,15 @@
-﻿namespace Dashboard.Logic
+﻿namespace Dashboard.Logic.Telemetry
 {
-    using Dashboard.Model;
-    using Dashboard.ViewModel;
-
+    using Model;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-
     using uPLibrary.Networking.M2Mqtt;
     using uPLibrary.Networking.M2Mqtt.Messages;
-    using Windows.ApplicationModel;
+    using ViewModel;
 
     /// <summary>
     /// Provides the view-model with telemetry data

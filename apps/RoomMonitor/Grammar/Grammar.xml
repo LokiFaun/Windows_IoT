@@ -20,8 +20,7 @@
     </one-of>
   </rule>
   <rule id="navigationCommands">
-    <item>show</item>
-    <item>me</item>
+    <item>show me</item>
     <one-of>
       <item>
         <ruleref uri="#showSubreddit" />
@@ -47,7 +46,7 @@
         today i learned<tag>out="todayilearned";</tag>
       </item>
       <item>
-        football<tag>out="nfl";</tag>
+        american football<tag>out="nfl";</tag>
       </item>
       <item>
         world news<tag>out="worldnews";</tag>
@@ -55,9 +54,13 @@
     </one-of>
   </rule>
   <rule id="showPage">
+    <item>the</item>
     <one-of>
       <item>
         time<tag>out="Main";</tag>
+      </item>
+      <item>
+        wheather<tag>out="Main";</tag>
       </item>
       <item>
         news<tag>out="News";</tag>

@@ -1,8 +1,10 @@
-﻿namespace Dashboard.Logic
+﻿namespace Dashboard.Logic.Speech
 {
-    using Dashboard.View;
     using System;
+    using System.Diagnostics;
     using System.Threading.Tasks;
+    using View;
+    using ViewModel;
     using Windows.ApplicationModel;
     using Windows.Media.Capture;
     using Windows.Media.SpeechRecognition;
@@ -14,6 +16,8 @@
     /// </summary>
     internal class SpeechInterpreter : IDisposable
     {
+        private const string GrammerFile = "Grammar\\grammar.xml";
+
         /// <summary>
         /// The IoC container
         /// </summary>
@@ -39,6 +43,7 @@
 
             m_Recognizer = new SpeechRecognizer(/*new Language("en-US")*/);
             m_Recognizer.ContinuousRecognitionSession.ResultGenerated += RecognizerResultGenerated;
+            m_Recognizer.StateChanged += RecognizerStateChanged;
         }
 
         /// <summary>
@@ -66,7 +71,7 @@
                 throw new UnauthorizedAccessException("No access to microphone!");
             }
 
-            var grammarFile = await Package.Current.InstalledLocation.GetFileAsync("Grammar\\grammar.xml");
+            var grammarFile = await Package.Current.InstalledLocation.GetFileAsync(GrammerFile);
             var grammarConstraint = new SpeechRecognitionGrammarFileConstraint(grammarFile);
             m_Recognizer.Constraints.Add(grammarConstraint);
 
@@ -108,6 +113,10 @@
             m_IsDisposed = true;
         }
 
+        /// <summary>
+        /// Checks if the current user has the permission to use the microphone
+        /// </summary>
+        /// <returns><c>true</c> if permission is granted, else <c>false</c></returns>
         private async Task<bool> HasMicrophonePermission()
         {
             try
@@ -128,6 +137,30 @@
         }
 
         /// <summary>
+        /// Parses the navigation page from the given string
+        /// </summary>
+        /// <param name="page">The string to parse</param>
+        /// <returns>The navigation page or <c>null</c> if none is available</returns>
+        private Type ParseNavigationPage(string page)
+        {
+            switch (page)
+            {
+                case MainViewModel.Name:
+                    return typeof(MainPage);
+
+                case NewsViewModel.Name:
+                    return typeof(NewsPage);
+
+                case SensorsViewModel.Name:
+                    return typeof(SensorPage);
+
+                default:
+                    break;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Handles successful recognized speech commands
         /// </summary>
         /// <param name="sender">The session of <see cref="SpeechContinuousRecognitionSession"/> that generated the result</param>
@@ -137,6 +170,9 @@
             var frame = Window.Current.Content as Frame;
             var rssProvider = m_Container.Resolve<RssProvider>();
 
+            var command = args.Result.SemanticInterpretation.Properties.ContainsKey("command") ?
+                           args.Result.SemanticInterpretation.Properties["command"][0].ToString() :
+                           "";
             var subreddit = args.Result.SemanticInterpretation.Properties.ContainsKey("subreddit") ?
                              args.Result.SemanticInterpretation.Properties["subreddit"][0].ToString() :
                              "";
@@ -144,24 +180,17 @@
                              args.Result.SemanticInterpretation.Properties["page"][0].ToString() :
                              "";
 
-            if (!string.IsNullOrWhiteSpace(subreddit) && (rssProvider != null))
-            {
-                rssProvider.Subreddit = subreddit;
-            }
+            Debug.WriteLine(string.Format("Command: {0}, SubReddit: {1}, Page: {2}", command, subreddit, page));
 
-            if (!string.IsNullOrWhiteSpace(page) && (frame != null))
+            if (!string.IsNullOrWhiteSpace(command) && (frame != null))
             {
-                switch (page)
+                switch (command)
                 {
-                    case "mainpage":
+                    case "on":
                         frame.Navigate(typeof(MainPage));
                         break;
 
-                    case "sensorpage":
-                        frame.Navigate(typeof(SensorPage));
-                        break;
-
-                    case "screensaver":
+                    case "off":
                         frame.Navigate(typeof(BlankPage));
                         break;
 
@@ -169,6 +198,27 @@
                         break;
                 }
             }
+
+            if (!string.IsNullOrWhiteSpace(subreddit) && (rssProvider != null))
+            {
+                rssProvider.Subreddit = subreddit;
+            }
+
+            var navigationPage = ParseNavigationPage(page);
+            if ((navigationPage != null) && (frame != null))
+            {
+                frame.Navigate(navigationPage);
+            }
+        }
+
+        /// <summary>
+        /// Invoked when speech recognition state changes
+        /// </summary>
+        /// <param name="sender">The speech recognizer</param>
+        /// <param name="args">The status arguments</param>
+        private void RecognizerStateChanged(SpeechRecognizer sender, SpeechRecognizerStateChangedEventArgs args)
+        {
+            Debug.WriteLine(args.State);
         }
     }
 }
