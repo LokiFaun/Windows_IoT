@@ -60,7 +60,7 @@
         time<tag>out="Main";</tag>
       </item>
       <item>
-        wheather<tag>out="Main";</tag>
+        Weather<tag>out="Main";</tag>
       </item>
       <item>
         news<tag>out="News";</tag>

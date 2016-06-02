@@ -59,7 +59,7 @@
         private static void AltitudeTimerCallback(object state)
         {
             CurrentAltitude = 44330.0 * (1.0 - Math.Pow(CurrentPressure / 1025.0, 0.1903));
-            Console.WriteLine("Pusblishing altitude: " + CurrentAltitude);
+            Console.WriteLine("Publishing altitude: " + CurrentAltitude);
             Client.Publish(AltitudeTopic, Encoding.UTF8.GetBytes(CurrentAltitude.ToString()));
         }
 
@@ -71,7 +71,7 @@
         {
             var random = new Random();
             CurrentLux = (ulong)random.Next(1000, 6000);
-            Console.WriteLine("Pusblishing lux: " + CurrentLux);
+            Console.WriteLine("Publishing lux: " + CurrentLux);
             Client.Publish(LuxTopic, Encoding.UTF8.GetBytes(CurrentLux.ToString()));
         }
 
@@ -105,7 +105,7 @@
         {
             var random = new Random();
             CurrentPressure = 1000 + (random.NextDouble() * 30);
-            Console.WriteLine("Pusblishing pressure: " + CurrentPressure);
+            Console.WriteLine("Publishing pressure: " + CurrentPressure);
             Client.Publish(PressureTopic, Encoding.UTF8.GetBytes(CurrentPressure.ToString()));
         }
 
@@ -117,7 +117,7 @@
         {
             var random = new Random();
             CurrentTemperature = 19 + (random.NextDouble() * 5);
-            Console.WriteLine("Pusblishing temperature: " + CurrentTemperature);
+            Console.WriteLine("Publishing temperature: " + CurrentTemperature);
             Client.Publish(TemperatureTopic, Encoding.UTF8.GetBytes(CurrentTemperature.ToString()));
         }
     }

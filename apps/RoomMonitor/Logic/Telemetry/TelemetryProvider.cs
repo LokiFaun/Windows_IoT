@@ -136,6 +136,7 @@
             if (disposing)
             {
                 m_Client.Disconnect();
+                m_StorageTimer.Dispose();
             }
             m_IsDisposed = true;
         }

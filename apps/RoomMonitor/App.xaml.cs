@@ -4,6 +4,7 @@
     using Logic;
     using Logic.Speech;
     using Logic.Telemetry;
+    using Logic.Weather;
     using System;
     using uPLibrary.Networking.M2Mqtt;
     using ViewModel;
@@ -77,7 +78,7 @@
                 container.Register(dateTimeTask);
                 dateTimeTask.Start();
 
-                var client = new MqttClient("192.168.1.7");
+                var client = new MqttClient("127.0.0.1");
                 container.Register(client);
 
                 var telemetryProvider = new TelemetryProvider(container);
@@ -90,6 +91,9 @@
                 var speechInterpreter = new SpeechInterpreter(container);
                 container.Register(speechInterpreter);
                 speechInterpreter.Start();
+
+                var WeatherProvider = new WeatherProvider(container);
+                container.Register(WeatherProvider);
             }
 
             ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
@@ -154,6 +158,12 @@
                 if (speecInterpreter != null)
                 {
                     speecInterpreter.Dispose();
+                }
+
+                var WeatherProvider = container.Resolve<WeatherProvider>();
+                if (WeatherProvider != null)
+                {
+                    WeatherProvider.Dispose();
                 }
             }
 

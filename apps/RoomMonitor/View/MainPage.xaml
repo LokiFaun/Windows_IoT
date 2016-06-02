@@ -18,13 +18,12 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="350" />
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="350" />
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Row="0"
                     Grid.Column="0"
-                    Grid.ColumnSpan="2"
                     Margin="10 0 0 0">
             <TextBlock Text="{Binding Path=CurrentDateTime, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0:D}'}"
                        FontSize="32" />
@@ -35,8 +34,7 @@
         <StackPanel Orientation="Horizontal"
                     Margin="10 0 0 0"
                     Grid.Row="1"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2">
+                    Grid.Column="0">
             <TextBlock Text="{Binding Path=CurrentTemperature, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0,-8:F2} °C'}"
                        VerticalAlignment="Center"
                        FontSize="28"
@@ -45,8 +43,7 @@
         <StackPanel Orientation="Horizontal"
                     Margin="10 0 0 0"
                     Grid.Row="2"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2">
+                    Grid.Column="0">
             <TextBlock Text="{Binding Path=CurrentPressure, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0,-8:F2} hPa'}"
                        VerticalAlignment="Center"
                        FontSize="28"
@@ -85,5 +82,38 @@
                        Grid.Row="1"
                        Grid.Column="1" />
         </Grid>
+        <StackPanel Orientation="Horizontal"
+                    Margin="0 0 10 0"
+                    Grid.Row="0"
+                    Grid.Column="2">
+            <Image Source="{Binding Path=ForecastIcon}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal"
+                    Margin="0 0 10 0"
+                    Grid.Row="1"
+                    Grid.Column="2">
+            <TextBlock Text="{Binding Path=ForecastTemperature, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0,-8:F2} °C'}"
+                       VerticalAlignment="Bottom"
+                       FontSize="28"
+                       FontFamily="Consolas" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal"
+                    Margin="0 0 10 0"
+                    Grid.Row="2"
+                    Grid.Column="2">
+            <TextBlock Text="{Binding Path=ForecastWeather}"
+                       VerticalAlignment="Center"
+                       FontSize="28"
+                       FontFamily="Consolas" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal"
+                    Margin="0 0 10 0"
+                    Grid.Row="3"
+                    Grid.Column="2">
+            <TextBlock Text="{Binding Path=ForecastCity}"
+                       VerticalAlignment="Top"
+                       FontSize="28"
+                       FontFamily="Consolas" />
+        </StackPanel>
     </Grid>
 </Page>

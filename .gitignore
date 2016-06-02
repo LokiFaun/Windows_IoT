@@ -200,3 +200,11 @@ services/tempprovider/project.lock.json
 /services/luxprovider/BundleArtifacts
 /services/mqttbroker/BundleArtifacts
 /services/tempprovider/BundleArtifacts
+
+# Custom ignored files
+/apps/RoomMonitor/Resources/WheatherApiKey.txt
+/apps/RoomMonitor/Resources/WheatherStationId.txt
+/apps/RoomMonitor/Resources/WeatherStationId.txt
+/apps/RoomMonitor/Resources/WeatherApiKey.txt
+/all/all.VC.db
+/tools/tools.VC.db
