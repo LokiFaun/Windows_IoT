@@ -49,6 +49,7 @@ namespace mqttbroker
             {
                 m_Broker.Stop();
             }
+
             m_Deferral.Complete();
             m_IsRunning = false;
         }

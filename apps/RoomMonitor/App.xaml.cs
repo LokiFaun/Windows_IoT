@@ -1,12 +1,13 @@
 ﻿namespace Dashboard
 {
-    using Dashboard.View;
-    using Logic;
+    using Logic.IO;
+    using Logic.News;
     using Logic.Speech;
     using Logic.Telemetry;
     using Logic.Weather;
     using System;
     using uPLibrary.Networking.M2Mqtt;
+    using View;
     using ViewModel;
     using Windows.ApplicationModel;
     using Windows.ApplicationModel.Activation;
@@ -20,6 +21,10 @@
     /// </summary>
     sealed partial class App : Application
     {
+        private const string LocaterResource = "Locator";
+
+        private const string MqttBrokerAddress = "schuetz-pi2";
+
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -49,7 +54,7 @@
 
             Frame rootFrame = Window.Current.Content as Frame;
 
-            // Do not repeat app initialization when the Window already has content,
+            // Do not repeat application initialization when the Window already has content,
             // just ensure that the window is active
             if (rootFrame == null)
             {
@@ -68,17 +73,17 @@
             }
 
             // add needed objects to IoC container
-            var locator = Resources["Locator"] as ViewModelLocator;
+            var locator = Resources[LocaterResource] as ViewModelLocator;
             if (locator != null)
             {
                 var container = locator.Container;
-                container.RegisterNamed("Locator", locator);
+                container.Register(locator);
 
                 var dateTimeTask = new DateTimeProvider(container);
                 container.Register(dateTimeTask);
                 dateTimeTask.Start();
 
-                var client = new MqttClient("127.0.0.1");
+                var client = new MqttClient(MqttBrokerAddress);
                 container.Register(client);
 
                 var telemetryProvider = new TelemetryProvider(container);
@@ -94,6 +99,9 @@
 
                 var WeatherProvider = new WeatherProvider(container);
                 container.Register(WeatherProvider);
+
+                var ioProvider = new IOProvider(container);
+                container.Register(ioProvider);
             }
 
             ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
@@ -107,6 +115,11 @@
             }
             // Ensure the current window is active
             Window.Current.Activate();
+            if (locator != null)
+            {
+                var container = locator.Container;
+                container.Register(Window.Current);
+            }
         }
 
         /// <summary>
@@ -132,7 +145,7 @@
             //TODO: Save application state and stop any background activity
 
             // clear all resources
-            var locator = Resources["Locator"] as ViewModelLocator;
+            var locator = Resources[LocaterResource] as ViewModelLocator;
             if (locator != null)
             {
                 var container = locator.Container;
@@ -160,10 +173,16 @@
                     speecInterpreter.Dispose();
                 }
 
-                var WeatherProvider = container.Resolve<WeatherProvider>();
-                if (WeatherProvider != null)
+                var weatherProvider = container.Resolve<WeatherProvider>();
+                if (weatherProvider != null)
                 {
-                    WeatherProvider.Dispose();
+                    weatherProvider.Dispose();
+                }
+
+                var ioProvider = container.Resolve<IOProvider>();
+                if (ioProvider != null)
+                {
+                    ioProvider.Dispose();
                 }
             }
 

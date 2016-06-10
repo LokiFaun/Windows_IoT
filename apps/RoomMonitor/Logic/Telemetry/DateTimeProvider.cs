@@ -1,4 +1,4 @@
-﻿namespace Dashboard.Logic
+﻿namespace Dashboard.Logic.Telemetry
 {
     using System;
     using System.Threading;

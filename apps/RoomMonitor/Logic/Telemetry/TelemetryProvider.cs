@@ -224,11 +224,11 @@
         {
             lock (m_Lock)
             {
-                using (var repository = new TelemetryStorage(m_Container))
-                {
-                    repository.AddTemperature(new Temperature(m_CurrentTemperature));
-                    repository.AddPressure(new Pressure(m_CurrentPressure));
-                }
+                //using (var repository = new TelemetryStorage(m_Container))
+                //{
+                //    repository.AddTemperature(new Temperature(m_CurrentTemperature));
+                //    repository.AddPressure(new Pressure(m_CurrentPressure));
+                //}
             }
         }
 

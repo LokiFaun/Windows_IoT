@@ -89,6 +89,7 @@ namespace Dashboard.Logic.Weather
             if (disposing)
             {
                 m_Timer.Dispose();
+                m_Client.Dispose();
             }
             m_IsDisposed = true;
         }

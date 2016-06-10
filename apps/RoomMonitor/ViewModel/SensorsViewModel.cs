@@ -68,11 +68,11 @@ namespace Dashboard.ViewModel
         /// </summary>
         public void Update()
         {
-            using (var db = new TelemetryStorage(m_Container))
-            {
-                TemperatureValues = db.GetTemperatureLastWeek().Select(x => new NameValueItem(x.Measurement, x.Value));
-                PressureValues = db.GetPressureLastWeek().Select(x => new NameValueItem(x.Measurement, x.Value));
-            }
+            //using (var db = new TelemetryStorage(m_Container))
+            //{
+            //    TemperatureValues = db.GetTemperatureLastWeek().Select(x => new NameValueItem(x.Measurement, x.Value));
+            //    PressureValues = db.GetPressureLastWeek().Select(x => new NameValueItem(x.Measurement, x.Value));
+            //}
         }
 
         /// <summary>

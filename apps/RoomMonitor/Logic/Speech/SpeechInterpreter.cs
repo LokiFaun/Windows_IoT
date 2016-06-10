@@ -1,11 +1,14 @@
 ﻿namespace Dashboard.Logic.Speech
 {
+    using News;
     using System;
     using System.Diagnostics;
     using System.Threading.Tasks;
+    using Telemetry;
     using View;
     using ViewModel;
     using Windows.ApplicationModel;
+    using Windows.Globalization;
     using Windows.Media.Capture;
     using Windows.Media.SpeechRecognition;
     using Windows.UI.Xaml;
@@ -16,6 +19,9 @@
     /// </summary>
     internal class SpeechInterpreter : IDisposable
     {
+        /// <summary>
+        /// The grammar file containing the commands
+        /// </summary>
         private const string GrammerFile = "Grammar\\grammar.xml";
 
         /// <summary>
@@ -29,12 +35,12 @@
         private readonly SpeechRecognizer m_Recognizer;
 
         /// <summary>
-        /// Indicates wheter this instance is disposed or not
+        /// Indicates whether this instance is disposed or not
         /// </summary>
         private bool m_IsDisposed = false;
 
         /// <summary>
-        /// Intializes a new instance of <see cref="SpeechInterpreter"/>
+        /// Initializes a new instance of <see cref="SpeechInterpreter"/>
         /// </summary>
         /// <param name="container">The IoC container</param>
         public SpeechInterpreter(Container container)
@@ -167,7 +173,6 @@
         /// <param name="args">The generated result arguments</param>
         private void RecognizerResultGenerated(SpeechContinuousRecognitionSession sender, SpeechContinuousRecognitionResultGeneratedEventArgs args)
         {
-            var frame = Window.Current.Content as Frame;
             var rssProvider = m_Container.Resolve<RssProvider>();
 
             var command = args.Result.SemanticInterpretation.Properties.ContainsKey("command") ?
@@ -182,16 +187,30 @@
 
             Debug.WriteLine(string.Format("Command: {0}, SubReddit: {1}, Page: {2}", command, subreddit, page));
 
-            if (!string.IsNullOrWhiteSpace(command) && (frame != null))
+            if (!string.IsNullOrWhiteSpace(subreddit) && (rssProvider != null))
+            {
+                rssProvider.Subreddit = subreddit;
+            }
+
+
+            if (!string.IsNullOrWhiteSpace(command))
             {
                 switch (command)
                 {
                     case "on":
-                        frame.Navigate(typeof(MainPage));
+                        DispatcherHelper.RunOnUIThread(() =>
+                        {
+                            var frame = m_Container.Resolve<Window>().Content as Frame;
+                            frame.Navigate(typeof(MainPage));
+                        });
                         break;
 
                     case "off":
-                        frame.Navigate(typeof(BlankPage));
+                        DispatcherHelper.RunOnUIThread(() =>
+                        {
+                            var frame = m_Container.Resolve<Window>().Content as Frame;
+                            frame.Navigate(typeof(BlankPage));
+                        });
                         break;
 
                     default:
@@ -199,15 +218,14 @@
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(subreddit) && (rssProvider != null))
-            {
-                rssProvider.Subreddit = subreddit;
-            }
-
             var navigationPage = ParseNavigationPage(page);
-            if ((navigationPage != null) && (frame != null))
+            if ((navigationPage != null))
             {
-                frame.Navigate(navigationPage);
+                DispatcherHelper.RunOnUIThread(() =>
+                {
+                    var frame = m_Container.Resolve<Window>().Content as Frame;
+                    frame.Navigate(navigationPage);
+                });
             }
         }
 

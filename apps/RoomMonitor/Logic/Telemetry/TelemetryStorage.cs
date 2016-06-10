@@ -36,7 +36,7 @@
         /// <summary>
         /// The name of the database file
         /// </summary>
-        private readonly static string DatebaseFile = Path.Combine(ApplicationData.Current.LocalFolder.Path, "db.sqlite");
+        private readonly static string DatebaseFile = "db.sqlite";
 
         /// <summary>
         /// The IoC container

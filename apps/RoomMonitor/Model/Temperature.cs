@@ -6,6 +6,7 @@ namespace Dashboard.Model
     /// <summary>
     /// Represents the temperature at a specific measurement time
     /// </summary>
+    [Table("Temperatures")]
     internal class Temperature
     {
         /// <summary>

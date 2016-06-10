@@ -1,9 +1,10 @@
-﻿namespace Dashboard.Logic
+﻿namespace Dashboard.Logic.News
 {
-    using Dashboard.ViewModel;
     using System;
     using System.Net.Http;
     using System.Threading;
+    using Telemetry;
+    using ViewModel;
     using Windows.Data.Xml.Dom;
     using Windows.Web.Syndication;
 
@@ -13,14 +14,9 @@
     internal class RssProvider : IDisposable
     {
         /// <summary>
-        /// The timer
+        /// Specifies the infinite period for stopping the timer
         /// </summary>
-        private readonly Timer m_Timer;
-
-        /// <summary>
-        /// Indicates wheter the object is disposed or not
-        /// </summary>
-        private bool m_IsDisposed = false;
+        private const int Infinite = -1;
 
         /// <summary>
         /// Specifies the update period in minutes
@@ -28,9 +24,19 @@
         private const int Period = 15;
 
         /// <summary>
-        /// Specifies the infinite period for stopping the timer
+        /// The timer
         /// </summary>
-        private const int Infinite = -1;
+        private readonly Timer m_Timer;
+
+        /// <summary>
+        /// Indicates whether the object is disposed or not
+        /// </summary>
+        private bool m_IsDisposed = false;
+
+        /// <summary>
+        /// Critical section
+        /// </summary>
+        private object m_Lock = new object();
 
         /// <summary>
         /// Specifies the subreddit to retrieve the feed from
@@ -38,9 +44,13 @@
         private string m_Subreddit = "worldnews";
 
         /// <summary>
-        /// Critical section
+        /// Initializes a new instance of <see cref="RssProvider"/>
         /// </summary>
-        private object m_Lock = new object();
+        /// <param name="container">The IoC container</param>
+        public RssProvider(Container container)
+        {
+            m_Timer = new Timer(Callback, container, Infinite, Infinite);
+        }
 
         /// <summary>
         /// Gets or sets the Subreddit
@@ -65,12 +75,12 @@
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="RssProvider"/>
+        /// Disposes this instance
         /// </summary>
-        /// <param name="container">The IoC container</param>
-        public RssProvider(Container container)
+        public void Dispose()
         {
-            m_Timer = new Timer(Callback, container, Infinite, Infinite);
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -100,12 +110,21 @@
         }
 
         /// <summary>
-        /// Disposes this instance
+        /// Disposes the instance references
         /// </summary>
-        public void Dispose()
+        /// <param name="disposing"><c>true</c> to dispose references</param>
+        protected virtual void Dispose(bool disposing)
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            if (m_IsDisposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                m_Timer.Dispose();
+            }
+            m_IsDisposed = true;
         }
 
         /// <summary>
@@ -143,24 +162,6 @@
             {
                 viewModel.FeedItems = feed.Items;
             });
-        }
-
-        /// <summary>
-        /// Disposes the instance references
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to dispose references</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (m_IsDisposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                m_Timer.Dispose();
-            }
-            m_IsDisposed = true;
         }
     }
 }

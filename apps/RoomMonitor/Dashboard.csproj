@@ -11,8 +11,8 @@
     <AssemblyName>Dashboard</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion>10.0.10586.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.10586.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <EnableDotNetNativeCompatibleProfile>true</EnableDotNetNativeCompatibleProfile>
     <FileAlignment>512</FileAlignment>
@@ -256,10 +256,11 @@
     <Compile Include="Logic\Command.cs" />
     <Compile Include="Logic\Container.cs" />
     <Compile Include="Logic\DispatcherHelper.cs" />
-    <Compile Include="Logic\DateTimeProvider.cs" />
+    <Compile Include="Logic\IO\IOProvider.cs" />
+    <Compile Include="Logic\Telemetry\DateTimeProvider.cs" />
     <Compile Include="Extensions\Extensions.cs" />
     <Compile Include="Logic\Telemetry\TelemetryStorage.cs" />
-    <Compile Include="Logic\RssProvider.cs" />
+    <Compile Include="Logic\News\RssProvider.cs" />
     <Compile Include="Logic\Speech\SpeechInterpreter.cs" />
     <Compile Include="Logic\Telemetry\TelemetryProvider.cs" />
     <Compile Include="Logic\Weather\WeatherProvider.cs" />

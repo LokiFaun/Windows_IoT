@@ -6,6 +6,7 @@ namespace Dashboard.Model
     /// <summary>
     /// Represents the pressure at a specific measurement time
     /// </summary>
+    [Table("Pressures")]
     internal class Pressure
     {
         /// <summary>
